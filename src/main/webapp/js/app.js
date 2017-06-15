@@ -459,6 +459,28 @@ app.controller('options-controller', [
       });
 
     }
+    
+    
+    // TOP K
+    $scope.submitSDL = function()
+    {
+      clearUserQueryResultsTable();
+      var q = constructSdlQuery(); //goes to query.js
+      var data = q;
+      console.log("calling execute SDL");
+      console.log(data);
+      $http.post('/zv/executeSDL', data).
+      success(function(response) {
+        console.log("execute SDL: success");
+        if (response.length == 0){console.log("empty response")}
+        console.log(response);
+     //   plotResults.displayUserQueryResults(response.outputCharts,$scope.flipY,true);
+      }).
+      error(function(response) {
+        console.log("getUserQueryResults: fail");
+      });
+
+    }
 
     $scope.clearQuery = function() {
       $scope.removeAndInsertRows( 1 );

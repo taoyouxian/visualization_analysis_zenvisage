@@ -255,8 +255,7 @@
                 <button type="button" name="options" ng-click="zqltable = !zqltable" data-toggle="button" aria-pressed="false" class="btn btn-default btn-xs">ZQL Table</button>
                 <button type="button" name="topk" ng-click="getTopK()" aria-pressed="false" class="btn btn-default btn-xs">Top K</button>
                 <button type="button" aria-pressed="false" data-toggle="button" ng-click="zqlgraph = !zqlgraph" class="btn btn-default btn-xs">ZQLgraph</button>
-            	<button type="button" aria-pressed="false" data-toggle="button" ng-click="nlp = !nlp" class="btn btn-default btn-xs">NLP</button>
-            	
+            
                 <div ng-show="zqltable">
                   <div class="btn-group">
                     <button type="button" name="query1" ng-click="populateWeatherQuery1()" aria-pressed="false" class="btn btn-default btn-xs">Q1</button>
@@ -410,7 +409,7 @@
                 <div id="math-equation">
                   <div class="info-text"><b>Custom Equation</b></div>
                   <div>
-                  <label>  y = </label><input class="num-results" type="text" name="number-of-results" value="50">
+                    y = </label><input class="num-results" type="text" name="number-of-results" value="50">
                   </div>
                 </div>
 
@@ -483,28 +482,8 @@
             <div id="graph-div" >
             </div>
           </div>
-       
-         <div ng-show="nlp" class="col-md-3" id="sdl">
-             <b>Natural Language Interface</b>
-                <div>
-                 <div class="info-text"><b>SDL Keywords</b></div>
-                  <div>
-                    <input ng-model="sdltext" class="form-control" type="text" id="sdltext" name="sdltext" value="50">
-                  </div>
-                </div>
-                
-                 <div>
-                 <div class="info-text"><b>Number of Segments</b></div>
-                  <div>
-                    <input ng-model="sdlsegments" class="form-control" type="text" id="sdlsegments" name="sdlsegments" value="3">
-                  </div>
-                </div>  
-                <hr>
-                <div> <input type="button" ng-click="submitSDL()" value="Submit"> </div>
-                  
-         </div>
+        </div>
 
-		 </div>
         <!-- drawng interface + zql table END-->
 
         <hr>

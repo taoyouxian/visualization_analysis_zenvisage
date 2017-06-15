@@ -137,3 +137,27 @@ function getSelectedDataset()
   return $("#dataset-form-control option:selected").val();
 }
 
+
+function constructSdlQuery()
+{
+  return new Sdlquery();
+}
+
+function Sdlquery() {
+	  this.x = getSelectedXAxis();
+	  this.y = getSelectedYAxis();
+	  this.z = getSelectedCategory();
+	  this.dataset= getSelectedDataset();
+	  this.sdlsegments=getSdlNumSegments();
+	  this.sdltext=getSdlText();
+}
+
+function getSdlText()
+{
+	 return angular.element($("#sdl")).scope().sdltext;
+}
+
+function getSdlNumSegments()
+{
+ return angular.element($("#sdl")).scope().sdlsegments;
+}
