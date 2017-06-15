@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.Map.Entry;
 
@@ -29,6 +30,9 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -606,8 +610,14 @@ public class ZvMain {
 //		System.out.println( new ObjectMapper().writeValueAsString(inMemoryDatabases.get(fq.getDatabasename()).getFormMetdaData()) );
 		return buffer;
 }
+	
+	public String executeSDL(String query) throws JsonGenerationException, JsonMappingException, IOException{
+		Sdlquery sdlquery = new ObjectMapper().readValue(query,Sdlquery.class);
+		System.out.println(new ObjectMapper().writeValueAsString(sdlquery));
+	    return "Query received successfully";
+	}
 
-
+	
 
 	/**
 	 * @param q

@@ -50,6 +50,20 @@ public class ZvBasicAPI {
 	    return new ObjectMapper().writeValueAsString(body);
 	}
 	
+	
+	@RequestMapping(value = "/executeSDL", method = RequestMethod.POST)
+	@ResponseBody
+	public String executeSDL(HttpServletRequest request, HttpServletResponse response) throws ClassNotFoundException, InterruptedException, IOException, ServletException, SQLException {
+	    StringBuilder stringBuilder = new StringBuilder();
+	    Scanner scanner = new Scanner(request.getInputStream());
+	    while (scanner.hasNextLine()) {
+	    	stringBuilder.append(scanner.nextLine());
+	    }
+	    String body = stringBuilder.toString();
+	    zvMain.executeSDL(body);
+	    return new ObjectMapper().writeValueAsString(body);
+	}
+	
 	/*
 	 * /zv/getClassInfo
 	 * {“dataset”: “real_estate”}
