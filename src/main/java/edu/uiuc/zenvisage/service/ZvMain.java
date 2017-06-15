@@ -613,6 +613,10 @@ public class ZvMain {
 	
 	public String executeSDL(String query) throws JsonGenerationException, JsonMappingException, IOException{
 		Sdlquery sdlquery = new ObjectMapper().readValue(query,Sdlquery.class);
+		// call sdl, should return Result.
+		// 
+	    // return new ObjectMapper().writeValueAsString(result)
+	
 		System.out.println(new ObjectMapper().writeValueAsString(sdlquery));
 	    return "Query received successfully";
 	}
