@@ -57,7 +57,7 @@ public class Smoother {
 //		ArrayList<List<Segment>> tmp = new ArrayList<>();
 		
 		for(int i = 0 ; i < data.size() ; i++){
-			bestOfEach.add(new SegmentsZ(Query.getBestPartition(2, 0.00000001, pattern , data.get(i)), zs.get(i), data.get(i)));
+			bestOfEach.add(new SegmentsZ(SdlMain.getBestPartition(2, 0.00000001, pattern , data.get(i)), zs.get(i), data.get(i)));
 //			bestOfEachZ.put(Query.getBestPartition(2, 0.00000001, pattern , d),map.get(d));
 //			tmp.add(Query.getBestPartition(2, 0.00000001, pattern , d));
 		}
@@ -65,7 +65,7 @@ public class Smoother {
 		/*Sort list of segments depending on score*/
 		Collections.sort(bestOfEach, new Comparator<SegmentsZ>() {
 	        @Override public int compare(SegmentsZ s1, SegmentsZ s2) {
-	            return (Query.getScore(s1.segments, pattern) >  Query.getScore(s2.segments, pattern) ? 1 : -1); 
+	            return (SdlMain.getScore(s1.segments, pattern) >  SdlMain.getScore(s2.segments, pattern) ? 1 : -1); 
 	        }
 		});
 		
@@ -77,7 +77,7 @@ public class Smoother {
 //		});
 		
 		for(int i = bestOfEach.size() - 1 ; i > bestOfEach.size() - 3 - 1  ; i--){
-			System.out.println("Place number "+ (bestOfEach.size() - i)+ " with score : "+Query.getScore(bestOfEach.get(i).segments, pattern));
+			System.out.println("Place number "+ (bestOfEach.size() - i)+ " with score : "+SdlMain.getScore(bestOfEach.get(i).segments, pattern));
 			System.out.println("City is :"+bestOfEach.get(i).z);
 			Segment.printListSegments(bestOfEach.get(i).segments);
 		}

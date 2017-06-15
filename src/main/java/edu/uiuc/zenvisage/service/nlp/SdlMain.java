@@ -7,9 +7,15 @@ import java.util.Comparator;
 import java.util.List;
 import com.google.common.collect.Lists;
 
-public class Query {
+import edu.uiuc.zenvisage.model.Result;
+import edu.uiuc.zenvisage.model.Sdlquery;
+
+public class SdlMain {
 	/*Stores all partitions possible*/
 	public static List<Tuple[]> allPartitions = new ArrayList<>();
+	static int min_size=2;
+	static int max_error=2;
+	static int topK=10;  
 
 	/*Takes a pattern and a list of segments and gives a score */
 	public static double getScore(List<Segment> s1 , String[] pattern){
@@ -35,7 +41,7 @@ public class Query {
 	/*Takes a list of segments and gives all possible partitions */
 	public static List<List<Segment>> partition(List<Segment> s1 , int partitions , double[][] data){
 		List<List<Segment>> result = new ArrayList<List<Segment>>();
-		Query.divide(0, partitions, new Tuple[partitions], s1.size());
+		SdlMain.divide(0, partitions, new Tuple[partitions], s1.size());
 		int i = 0;
 		
 		for(Tuple[] tuples : allPartitions){
@@ -71,14 +77,14 @@ public class Query {
 	
 	/*Returns the partition that maximizes the score*/
 	public static List<Segment> getBestPartition(int min_size , double max_error , String[] pattern , double[][] data){
-		List<List<Segment>> result = Query.partition(Segment.smoothing(min_size,max_error,data),pattern.length, data);
+		List<List<Segment>> result = SdlMain.partition(Segment.smoothing(min_size,max_error,data),pattern.length, data);
 		List<Double> scores = new ArrayList<>();
 		
 		for(List<Segment> segments : result){
 //			System.out.println("//////////////////////////////////////////");
 			List<Segment> reversed = Lists.reverse(segments);
 //			Segment.printListSegments(reversed);
-			scores.add(Query.getScore(reversed,pattern));
+			scores.add(SdlMain.getScore(reversed,pattern));
 //			System.out.println("SCORE OF LIST IS  "+ Query.getScore(reversed,pattern));
 //			System.out.println("//////////////////////////////////////////\n");
 		}
@@ -99,7 +105,15 @@ public class Query {
 	}
 	
 	/*Prints top K best visualizations */
-	public static void getTopKVisualizations(String X , String Y , String Z , String tableName , String keywords , int min_size   ,double max_error, int topK  ) throws ClassNotFoundException, SQLException{
+	public static Result executeSdlQuery(Sdlquery sdlquery) throws ClassNotFoundException, SQLException{
+	
+		String X=sdlquery.x;
+		String Y=sdlquery.y; 
+		String Z=sdlquery.z;
+		String tableName=sdlquery.dataset;
+		String keywords=sdlquery.sdltext;  
+		// int segments=
+		
 		ArrayList<String> zs = Data.getZs(Z, tableName);
 		ArrayList<double[][]> data = Data.fetchAllData(X, Y, Z, tableName);
 		List<SegmentsAndZ> bestOfEachZ = new ArrayList<>();
@@ -109,23 +123,31 @@ public class Query {
 		
 		/*Store every best representation of the visualization along with its z value*/
 		for(int i = 0 ; i < data.size() ; i++){
-			bestOfEachZ.add(new SegmentsAndZ(Query.getBestPartition(min_size, max_error, pattern , data.get(i)), zs.get(i), data.get(i)));
+			bestOfEachZ.add(new SegmentsAndZ(SdlMain.getBestPartition(min_size, max_error, pattern , data.get(i)), zs.get(i), data.get(i)));
 		}
 		
 		/*Sort list of segments depending on score*/
 		Collections.sort(bestOfEachZ, new Comparator<SegmentsAndZ>() {
 	        @Override public int compare(SegmentsAndZ s1, SegmentsAndZ s2) {
-	            return (Query.getScore(s1.segments, pattern) >  Query.getScore(s2.segments, pattern) ? 1 : -1); 
+	            return (SdlMain.getScore(s1.segments, pattern) >  SdlMain.getScore(s2.segments, pattern) ? 1 : -1); 
 	        }
 		});
 		
 		/*Returns the top k visualizations*/
 		for(int i = bestOfEachZ.size() - 1 ; i > bestOfEachZ.size() - topK - 1  ; i--){
-			System.out.println("Place number "+ (bestOfEachZ.size() - i)+ " with score : "+Query.getScore(bestOfEachZ.get(i).segments, pattern));
+			System.out.println("Place number "+ (bestOfEachZ.size() - i)+ " with score : "+SdlMain.getScore(bestOfEachZ.get(i).segments, pattern));
 			System.out.println("City is : "+bestOfEachZ.get(i).z);
 			Segment.printListSegments(bestOfEachZ.get(i).segments);
 			System.out.println("////////////////");
 		}
+		
+		//Fix this
+		return convertOutputtoVisualization();
+	}
+	
+	static public Result convertOutputtoVisualization(){
+		//Fix this
+		return null;
 	}
 
 }

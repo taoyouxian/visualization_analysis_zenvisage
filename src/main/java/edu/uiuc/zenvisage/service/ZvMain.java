@@ -58,6 +58,7 @@ import edu.uiuc.zenvisage.service.distance.DTWDistance;
 import edu.uiuc.zenvisage.service.distance.Distance;
 import edu.uiuc.zenvisage.service.distance.Euclidean;
 import edu.uiuc.zenvisage.service.distance.SegmentationDistance;
+import edu.uiuc.zenvisage.service.nlp.SdlMain;
 import edu.uiuc.zenvisage.model.*;
 import edu.uiuc.zenvisage.service.utility.DataReformation;
 import edu.uiuc.zenvisage.service.utility.LinearNormalization;
@@ -611,14 +612,13 @@ public class ZvMain {
 		return buffer;
 }
 	
-	public String executeSDL(String query) throws JsonGenerationException, JsonMappingException, IOException{
+	public String executeSDL(String query) throws JsonGenerationException, JsonMappingException, IOException, ClassNotFoundException, SQLException{
 		Sdlquery sdlquery = new ObjectMapper().readValue(query,Sdlquery.class);
-		// call sdl, should return Result.
-		// 
-	    // return new ObjectMapper().writeValueAsString(result)
-	
 		System.out.println(new ObjectMapper().writeValueAsString(sdlquery));
-	    return "Query received successfully";
+		Result result=SdlMain.executeSdlQuery(sdlquery);
+		String jsonResult=new ObjectMapper().writeValueAsString(result);
+		System.out.println(jsonResult);
+	    return jsonResult;
 	}
 
 	

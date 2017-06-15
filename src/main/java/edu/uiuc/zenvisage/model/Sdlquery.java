@@ -9,6 +9,9 @@ public class Sdlquery {
 	public String dataset;
 	public String sdlsegments;
 	public String sdltext;
+	
+	
+	
 	public Sdlquery(){};
 	public String getX() {
 		return x;
