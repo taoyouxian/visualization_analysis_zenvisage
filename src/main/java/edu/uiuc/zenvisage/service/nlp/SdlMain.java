@@ -7,15 +7,16 @@ import java.util.Comparator;
 import java.util.List;
 import com.google.common.collect.Lists;
 
+import edu.uiuc.zenvisage.model.Chart;
 import edu.uiuc.zenvisage.model.Result;
 import edu.uiuc.zenvisage.model.Sdlquery;
 
 public class SdlMain {
 	/*Stores all partitions possible*/
 	public static List<Tuple[]> allPartitions = new ArrayList<>();
-	static int min_size=2;
-	static int max_error=2;
-	static int topK=10;  
+	static int min_size = 2;
+	/*static int max_error = 2;*/
+	static int topK = 10;  
 
 	/*Takes a pattern and a list of segments and gives a score */
 	public static double getScore(List<Segment> s1 , String[] pattern){
@@ -76,8 +77,8 @@ public class SdlMain {
 	}
 	
 	/*Returns the partition that maximizes the score*/
-	public static List<Segment> getBestPartition(int min_size , double max_error , String[] pattern , double[][] data){
-		List<List<Segment>> result = SdlMain.partition(Segment.smoothing(min_size,max_error,data),pattern.length, data);
+	public static List<Segment> getBestPartition(int min_size , int nb_segments/*double max_error */, String[] pattern , double[][] data){
+		List<List<Segment>> result = SdlMain.partition(Segment.smoothing(min_size,nb_segments,data),pattern.length, data);
 		List<Double> scores = new ArrayList<>();
 		
 		for(List<Segment> segments : result){
@@ -106,48 +107,83 @@ public class SdlMain {
 	
 	/*Prints top K best visualizations */
 	public static Result executeSdlQuery(Sdlquery sdlquery) throws ClassNotFoundException, SQLException{
-	
-		String X=sdlquery.x;
-		String Y=sdlquery.y; 
-		String Z=sdlquery.z;
-		String tableName=sdlquery.dataset;
-		String keywords=sdlquery.sdltext;  
-		// int segments=
+		String X = sdlquery.x;
+		String Y = sdlquery.y; 
+		String Z = sdlquery.z;
+		String tableName = sdlquery.dataset;
+		String keywords = sdlquery.sdltext;  
+		int nb_segments = Integer.parseInt(sdlquery.sdlsegments);
 		
+		long tStart1 = System.currentTimeMillis();
 		ArrayList<String> zs = Data.getZs(Z, tableName);
+		long tEnd1 = System.currentTimeMillis();
+		System.out.println("Elapsed time for getting all Zs "+(tEnd1-tStart1));
+		long tStart2 = System.currentTimeMillis();
 		ArrayList<double[][]> data = Data.fetchAllData(X, Y, Z, tableName);
+		long tEnd2 = System.currentTimeMillis();
+		System.out.println("Elapsed time to fetch all data "+(tEnd2-tStart2));
 		List<SegmentsAndZ> bestOfEachZ = new ArrayList<>();
 
 		/*Get the pattern*/
+		long tStart3 = System.currentTimeMillis();
 		String [] pattern = Data.toKeywords(keywords);
+		long tEnd3 = System.currentTimeMillis();
+		System.out.println("Elapsed time toKeywords "+(tEnd3-tStart3));
 		
 		/*Store every best representation of the visualization along with its z value*/
+		long tStart4 = System.currentTimeMillis();
 		for(int i = 0 ; i < data.size() ; i++){
-			bestOfEachZ.add(new SegmentsAndZ(SdlMain.getBestPartition(min_size, max_error, pattern , data.get(i)), zs.get(i), data.get(i)));
+			bestOfEachZ.add(new SegmentsAndZ(SdlMain.getBestPartition(min_size, nb_segments, pattern , data.get(i)), zs.get(i), data.get(i)));
 		}
+		long tEnd4 = System.currentTimeMillis();
+		System.out.println("Elapsed time to get best partitions"+(tEnd4-tStart4));
 		
+		long tStart5 = System.currentTimeMillis();		
 		/*Sort list of segments depending on score*/
 		Collections.sort(bestOfEachZ, new Comparator<SegmentsAndZ>() {
 	        @Override public int compare(SegmentsAndZ s1, SegmentsAndZ s2) {
-	            return (SdlMain.getScore(s1.segments, pattern) >  SdlMain.getScore(s2.segments, pattern) ? 1 : -1); 
+	            return (SdlMain.getScore(s1.segments, pattern) <  SdlMain.getScore(s2.segments, pattern) ? 1 : -1); 
 	        }
 		});
+		long tEnd5 = System.currentTimeMillis();
+		System.out.println("Elapsed time to sort "+(tEnd5-tStart5));
 		
+		long tStart6 = System.currentTimeMillis();
 		/*Returns the top k visualizations*/
-		for(int i = bestOfEachZ.size() - 1 ; i > bestOfEachZ.size() - topK - 1  ; i--){
-			System.out.println("Place number "+ (bestOfEachZ.size() - i)+ " with score : "+SdlMain.getScore(bestOfEachZ.get(i).segments, pattern));
+		for(int i = 0 ; i < topK  ; i++){
+			System.out.println("Place number "+ (i+1) + " with score : "+SdlMain.getScore(bestOfEachZ.get(i).segments, pattern));
 			System.out.println("City is : "+bestOfEachZ.get(i).z);
 			Segment.printListSegments(bestOfEachZ.get(i).segments);
 			System.out.println("////////////////");
 		}
+		long tEnd6 = System.currentTimeMillis();
+		System.out.println("Elapsed time to get top K "+(tEnd6-tStart6));
 		
-		//Fix this
-		return convertOutputtoVisualization();
+		List<SegmentsAndZ> result = bestOfEachZ.subList(0, topK);
+		System.out.println("Size of sublist is : "+result.size());
+		return convertOutputtoVisualization(result,sdlquery);
 	}
 	
-	static public Result convertOutputtoVisualization(){
-		//Fix this
-		return null;
+	static public Result convertOutputtoVisualization(List<SegmentsAndZ> top_k_results , Sdlquery sdlquery){
+		Result result = new Result();
+		for(int i = 0 ; i < topK ; i++){
+			result.outputCharts.add(i,new Chart());
+			result.outputCharts.get(i).setxData(Data.doubleToString(Data.getColumn(top_k_results.get(i).data,1)));// change to  actual data
+			result.outputCharts.get(i).setyData(Data.doubleToString(Data.getColumn(top_k_results.get(i).data,2)));// change to actual data
+			result.outputCharts.get(i).setRank(i+1);
+			result.outputCharts.get(i).setxType(sdlquery.x);
+			result.outputCharts.get(i).setyType(sdlquery.y);
+			result.outputCharts.get(i).setzType(sdlquery.z);
+			result.outputCharts.get(i).setConsiderRange(false);
+			result.outputCharts.get(i).setDistance(1);
+			result.outputCharts.get(i).setNormalizedDistance(1);
+			result.outputCharts.get(i).xRange = new float[]{0,120};
+			result.outputCharts.get(i).title = (top_k_results.get(i).z);
+			result.setMethod("");
+			result.setxUnit("");
+			result.setyUnit("");	
+		}
+		return result;
 	}
 
 }

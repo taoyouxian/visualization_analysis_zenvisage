@@ -60,8 +60,8 @@ public class ZvBasicAPI {
 	    	stringBuilder.append(scanner.nextLine());
 	    }
 	    String body = stringBuilder.toString();
-	    zvMain.executeSDL(body);
-	    return new ObjectMapper().writeValueAsString(body);
+	    String result = zvMain.executeSDL(body);
+	    return result;
 	}
 	
 	/*

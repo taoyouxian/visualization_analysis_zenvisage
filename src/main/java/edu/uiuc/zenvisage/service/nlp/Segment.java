@@ -10,11 +10,10 @@ public class Segment{
 	 double slope , beta , error;
 	 
 	/*Constructor of segment*/
-	public  Segment(int start_idx,int end_idx , double[][] data){
+	public Segment(int start_idx,int end_idx , double[][] data){
 		
 		this.start_idx = start_idx;
 		this.end_idx = end_idx;
-		
 		SimpleRegression regression = new SimpleRegression();	
 		regression.addData(Data.getPart(start_idx, end_idx, data)); 
 		this.slope = regression.getSlope();
@@ -137,27 +136,25 @@ public class Segment{
 		return result;
 	}
 	
-	/*Applies bottomUp until max_error is reached      TODO: ADD DESIRED_SIZE*/
-	public static List<Segment> smoothing(int min_size , double max_error , double[][] data){
+	/*Applies bottomUp until max_error is reached*/
+	public static List<Segment> smoothing(int min_size , int nb_segments /*double max_error */, double[][] data){
 		List<Segment> smooth = Segment.initialize(data,min_size);
 		
 		List<Segment> smooth_test1 = Segment.initialize(data,min_size);
 		List<Segment> smooth_test2 = Segment.initialize(data,min_size);
 		
-		int desired_size = 5;//if desired_size == max number of segments set error to 0 (no smoothing)
-		
-		while(smooth_test1.size() != desired_size + 1){
+		while(smooth_test1.size() != nb_segments + 1){
 			smooth_test1 = Segment.bottomUp(smooth_test1,data);
 		}
 		
-		while(smooth_test2.size() != desired_size){
+		while(smooth_test2.size() != nb_segments){
 			smooth_test2 = Segment.bottomUp(smooth_test2,data);
 		}
 		
 		//that's the error to get desired_size
 //		System.out.println("TO GET "+desired_size+ " SEGMENTS IN SMOOTH VERSION SET ERROR BIGGER THAN " +Segment.getError(smooth_test1)+" AND SMALLER THAN " +Segment.getError(smooth_test2)+ "\n"); 
 
-		while(Segment.getError(smooth) < max_error && smooth.size() > 1){;
+		while(/*Segment.getError(smooth) < max_error && */ smooth.size() != nb_segments){;
 			smooth = Segment.bottomUp(smooth,data);//error here is maximal error permitted per merge / shallow copy of smooth
 		}
 //		System.out.println("NUMBER OF SEGMENTS OF SMOOTH VERSION IS : "+smooth.size()+"\n");

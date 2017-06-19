@@ -58,6 +58,7 @@ public class Data{
 		+ " WHERE " + Z + " = '" + singleValue.replaceAll("'","''")  //escaping single quotes
 		+ "' GROUP BY " + X
 		+ " ORDER BY "+ X;
+		/*+ " LIMIT 25000";*/
 		
 //		String sql =  "SELECT Year,avg(SoldPrice) FROM real_estate WHERE City = 'Chicago' GROUP BY Year ORDER BY Year;";
 //		System.out.println("Current city : "+singleValue);
@@ -97,14 +98,31 @@ public class Data{
 	
 	/*Gets the data of a all z values from Postgres and stores it in a list*/
 	public static ArrayList<double[][]> fetchAllData(String X , String Y , String Z , String tableName ) throws SQLException, ClassNotFoundException{
-		
+
 		ArrayList<double[][]> result = new ArrayList<>();
 		Data queryExecutor = new Data();
 		String sql = "SELECT DISTINCT " + Z + " FROM " + tableName;
+		
+		/*String sql = "SELECT " + X+ "," + "avg(" + Y + ")"
+				+ " FROM " + tableName 
+				+ "' GROUP BY " + X + "," + Z
+				+ " ORDER BY "+ X;*/
+				
 		ResultSet rows = queryExecutor.query(sql);
 		
+		/*
 		while(rows.next()){
+			if(! z.equals(rows.getString(Z))){
+				
+			}
+		}
+		*/
+		
+		while(rows.next()){
+			long tStart7 = System.currentTimeMillis();
 			result.add(fetchSingleData(X,Y,Z,rows.getString(1),tableName , queryExecutor));
+			long tEnd7 = System.currentTimeMillis();
+			System.out.println("Elapsed time fetch single data "+(tEnd7-tStart7));
 		}
 		return result;
 	}
@@ -134,7 +152,25 @@ public class Data{
 	
 	/*Returns the keywords in the pattern*/
 	public static String[] toKeywords(String pattern){
-		return pattern.split("\\s+");
+		return pattern.split("\\s+"); // change to , 
+	}
+	
+	/*Converts  array of double to array of strings*/
+	public static ArrayList<String> doubleToString(double[] data){
+		ArrayList<String> dataString = new ArrayList<>();
+		for(int i = 0 ; i < data.length ; i++){
+			dataString.add(i,Double.toString(data[i]));
+		}
+		return dataString;
+	}
+	
+	/*Returns column: index_column of data*/
+	public static double[] getColumn(double[][] data , int index_column){
+		double[] column = new double[data.length];
+		for(int i = 0 ; i < data.length ; i++){
+			column[i]  = data[i][index_column-1];
+		}
+		return column;
 	}
 	
 }
