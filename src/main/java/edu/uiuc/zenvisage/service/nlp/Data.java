@@ -14,6 +14,9 @@ public class Data{
 	private String username = "postgres";
 	private String password = "zenvisage";
 	Connection c = null;
+	
+	/*Stores list of Z values*/
+	public static ArrayList<String> allZs = new ArrayList<>();
 
 	// Initialize connection
 	public Data() {
@@ -59,9 +62,7 @@ public class Data{
 		+ "' GROUP BY " + X
 		+ " ORDER BY "+ X;
 		/*+ " LIMIT 25000";*/
-		
-//		String sql =  "SELECT Year,avg(SoldPrice) FROM real_estate WHERE City = 'Chicago' GROUP BY Year ORDER BY Year;";
-//		System.out.println("Current city : "+singleValue);
+
 		ResultSet rows = executor.query(sql);
 		
 		/*Finds the length of the table(ResultSet)*/
@@ -73,9 +74,7 @@ public class Data{
 			  rows.beforeFirst(); 
 		}
 		
-		
 		double[][] result = new double[rowcount][2];
-		
 		
 		/*Print table*/
 //		while(rows.next()){
@@ -98,12 +97,9 @@ public class Data{
 	
 	/*Gets the data of a all z values from Postgres and stores it in a list*/
 	public static ArrayList<double[][]> fetchAllData(String X , String Y , String Z , String tableName ) throws SQLException, ClassNotFoundException{
-
 		/*ArrayList<double[][]> result = new ArrayList<>();*/
 		ArrayList<ArrayList<double[]>> result = new ArrayList<>();
-		
 		Data queryExecutor = new Data();
-		
 		
 		/*String sql = "SELECT DISTINCT " + Z + " FROM " + tableName;*/
 		String sql = "SELECT " + Z + "," + X + "," +"avg(" + Y + ")"
@@ -119,6 +115,7 @@ public class Data{
 		while(rows.next()){		
 			if(!z.equals(rows.getString(Z))){
 				i++;
+				allZs.add(i,rows.getString(Z));
 				result.add(i, new ArrayList<>());
 				z = rows.getString(Z);
 				j = 0 ;
@@ -127,15 +124,6 @@ public class Data{
 			result.get(i).add(j,row);
 			j++;
 		}
-		
-		/*
-		while(rows.next()){
-			long tStart7 = System.currentTimeMillis();
-			result.add(fetchSingleData(X,Y,Z,rows.getString(1),tableName , queryExecutor));
-			long tEnd7 = System.currentTimeMillis();
-			System.out.println("Elapsed time fetch single data "+(tEnd7-tStart7));
-		}
-		*/
 		return toArrayListDouble(result);
 	}
 	
@@ -164,7 +152,7 @@ public class Data{
 	
 	/*Returns the keywords in the pattern*/
 	public static String[] toKeywords(String pattern){
-		return pattern.split("\\s+"); // change to , 
+		return pattern.split("\\P{L}+"); // change to , 
 	}
 	
 	/*Converts  array of double to array of strings*/
@@ -190,7 +178,6 @@ public class Data{
 		ArrayList<double[][]> result = new ArrayList<>();
 		for(int i = 0 ; i < list.size() ; i++){
 			double[][] data = new double[list.get(i).size()][2];
-			/*System.out.println(list.get(i).size());*/
 			for(int j = 0 ; j < data.length ; j++){
 				data[j][0] = list.get(i).get(j)[0];
 				data[j][1] = list.get(i).get(j)[1];

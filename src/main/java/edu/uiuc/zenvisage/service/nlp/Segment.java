@@ -20,12 +20,15 @@ public class Segment{
 		this.error = regression.getSumSquaredErrors();
 	}
 	
+	/*Creates a segment from a tuple*/
 	/*Create Segment from a tuple*/
 	public static Segment createSegment(Tuple tuple , double[][] data){
 		return new Segment(tuple.start_idx,tuple.end_idx,data);
 	}
 	
 	/*Create List of segments from array of tuples*/
+	
+	/*Creates a list of segments from a list of tuples*/
 	public static List<Segment> createListSegment(Tuple[] tuples , double[][] data){
 		List<Segment> result = new ArrayList<>();
 		int i = 0;
@@ -44,6 +47,8 @@ public class Segment{
 	}
 	
 	/*Print value of a segment*/
+	
+	/*Print a single segment(values)*/
 	public static void printSegment(Segment segment){
 		System.out.println("The start index is : " +segment.start_idx);
 		System.out.println("The end index is : " +segment.end_idx);
@@ -54,6 +59,8 @@ public class Segment{
 	}
 	
 	/*Print value of list of segments*/
+	
+	/*Print a list of segments*/
 	public static void printListSegments(List<Segment> segments){
 		for(Segment s : segments){
 			printSegment(s);
@@ -62,16 +69,10 @@ public class Segment{
 	
 	/*Merge 2 segments*/
 	public static Segment mergeSegments(Segment seg1 , Segment seg2 , double[][] data){
-		int result_start_idx = -1 , result_end_idx = -1;//Assign dummy value
-		
-//		if(seg1.end_idx == (seg2.start_idx-1)){
-			result_start_idx = seg1.start_idx;
-			result_end_idx = seg2.end_idx;   
-//		}
-		
-		Segment result = new Segment(result_start_idx,result_end_idx,data);
-		return result;
+		return new Segment(seg1.start_idx,seg2.end_idx,data);
+
 	}
+	
 	
 	/*Create list of segments of length min_size each from data*/
 	public static List<Segment> initialize(double[][] data , int min_size){
@@ -93,6 +94,7 @@ public class Segment{
 	}
 	
 	/*Gives total error of a list of segments*/
+	/*Computes total error of list of segments*/
 	public static double getError(List<Segment> segments){
 		double total_error = segments.get(0).error ;
 		
@@ -134,6 +136,7 @@ public class Segment{
 	    
 		return result;
 	}
+	
 	
 	/*Applies bottomUp until max_error is reached*/
 	public static List<Segment> smoothing(int min_size , int nb_segments /*double max_error */, double[][] data){
