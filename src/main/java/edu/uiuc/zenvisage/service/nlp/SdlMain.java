@@ -1,12 +1,12 @@
 package edu.uiuc.zenvisage.service.nlp;
 
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import com.google.common.collect.Lists;
-
 import edu.uiuc.zenvisage.model.Chart;
 import edu.uiuc.zenvisage.model.Result;
 import edu.uiuc.zenvisage.model.Sdlquery;
@@ -43,6 +43,7 @@ public class SdlMain {
 	public static List<List<Segment>> partition(List<Segment> s1 , int partitions , double[][] data){
 		List<List<Segment>> result = new ArrayList<List<Segment>>();
 		SdlMain.divide(0, partitions, new Tuple[partitions], s1.size());
+		
 		int i = 0;
 		
 		for(Tuple[] tuples : allPartitions){
@@ -78,7 +79,8 @@ public class SdlMain {
 	
 	/*Returns the partition that maximizes the score*/
 	public static List<Segment> getBestPartition(int min_size , int nb_segments/*double max_error */, String[] pattern , double[][] data){
-		List<List<Segment>> result = SdlMain.partition(Segment.smoothing(min_size,nb_segments,data),pattern.length, data);
+		
+		List<List<Segment>> result = SdlMain.partition(Segment.smoothing(min_size,nb_segments,data),pattern.length, data); 
 		List<Double> scores = new ArrayList<>();
 		
 		for(List<Segment> segments : result){
@@ -90,9 +92,9 @@ public class SdlMain {
 //			System.out.println("//////////////////////////////////////////\n");
 		}
 //		System.out.println("Number of possibities is "+result.size()+"\n");
-		
 		int max_idx = -1;
 		double max_score = Double.NEGATIVE_INFINITY;
+		
 		for(int i = 0 ; i < scores.size() ; i++){
 			if(scores.get(i) > max_score){
 				max_idx = i;
@@ -116,10 +118,24 @@ public class SdlMain {
 		
 		long tStart1 = System.currentTimeMillis();
 		ArrayList<String> zs = Data.getZs(Z, tableName);
+		Collections.sort(zs);
 		long tEnd1 = System.currentTimeMillis();
 		System.out.println("Elapsed time for getting all Zs "+(tEnd1-tStart1));
 		long tStart2 = System.currentTimeMillis();
 		ArrayList<double[][]> data = Data.fetchAllData(X, Y, Z, tableName);
+		
+		/*Clone data*/
+		ArrayList<double[][]> data1 = new ArrayList<>();
+		for(double[][] d : data){
+			data1.add(d);
+		}
+		
+		for(double[][] single_data : data){
+			for(int i = 0 ; i < single_data.length ; i++){
+				 single_data[i][1] = Data.zNormalize(Data.getColumn(single_data,2))[i]; 
+			}
+		}
+		
 		long tEnd2 = System.currentTimeMillis();
 		System.out.println("Elapsed time to fetch all data "+(tEnd2-tStart2));
 		List<SegmentsAndZ> bestOfEachZ = new ArrayList<>();
@@ -131,12 +147,14 @@ public class SdlMain {
 		System.out.println("Elapsed time toKeywords "+(tEnd3-tStart3));
 		
 		/*Store every best representation of the visualization along with its z value*/
+		
 		long tStart4 = System.currentTimeMillis();
 		for(int i = 0 ; i < data.size() ; i++){
 			bestOfEachZ.add(new SegmentsAndZ(SdlMain.getBestPartition(min_size, nb_segments, pattern , data.get(i)), zs.get(i), data.get(i)));
+			allPartitions.clear();
 		}
 		long tEnd4 = System.currentTimeMillis();
-		System.out.println("Elapsed time to get best partitions"+(tEnd4-tStart4));
+		System.out.println("Elapsed time to get best partitions "+(tEnd4-tStart4));
 		
 		long tStart5 = System.currentTimeMillis();		
 		/*Sort list of segments depending on score*/
@@ -159,17 +177,36 @@ public class SdlMain {
 		long tEnd6 = System.currentTimeMillis();
 		System.out.println("Elapsed time to get top K "+(tEnd6-tStart6));
 		
-		List<SegmentsAndZ> result = bestOfEachZ.subList(0, topK);
+		 
+		List<SegmentsAndZ> result = bestOfEachZ.subList(0,topK);
 		System.out.println("Size of sublist is : "+result.size());
-		return convertOutputtoVisualization(result,sdlquery);
+		return convertOutputtoVisualization(result,data1,zs,sdlquery);
 	}
 	
-	static public Result convertOutputtoVisualization(List<SegmentsAndZ> top_k_results , Sdlquery sdlquery){
+	/*Converts the top K List<Segment> to Result format*/
+	 public static Result convertOutputtoVisualization(List<SegmentsAndZ> top_k_results , ArrayList<double[][]> data ,ArrayList<String> zs , Sdlquery sdlquery) throws SQLException, ClassNotFoundException{
+		/*String sql =  "SELECT " + sdlquery.z + "," + sdlquery.x + "," + sdlquery.y  + " FROM " + sdlquery.dataset;
+		String condition = "";
+		for(int i = 0 ; i < topK ; i++){
+			condition+=" WHERE " + sdlquery.z  + " = '" + top_k_results.get(i).z.replaceAll("'","''") + "'"; 
+		}
+		*/ 
+		Data queryExecutor = new Data();
 		Result result = new Result();
 		for(int i = 0 ; i < topK ; i++){
 			result.outputCharts.add(i,new Chart());
-			result.outputCharts.get(i).setxData(Data.doubleToString(Data.getColumn(top_k_results.get(i).data,1)));// change to  actual data
-			result.outputCharts.get(i).setyData(Data.doubleToString(Data.getColumn(top_k_results.get(i).data,2)));// change to actual data
+			
+			/*Change to actual data
+			result.outputCharts.get(i).setxData(Data.doubleToString(Data.getColumn(top_k_results.get(i).data,1)));
+			result.outputCharts.get(i).setyData(Data.doubleToString(Data.getColumn(top_k_results.get(i).data,2)));
+
+			/*To optimize :
+			result.outputCharts.get(i).setxData(Data.doubleToString(Data.getColumn(data.get(zs.indexOf(top_k_results.get(i).z)),1)));
+			result.outputCharts.get(i).setxData(Data.doubleToString(Data.getColumn(data.get(zs.indexOf(top_k_results.get(i).z)),2)));
+			*/
+			
+			result.outputCharts.get(i).setxData(Data.doubleToString(Data.getColumn(Data.fetchSingleData(sdlquery.x,sdlquery.y,sdlquery.z, top_k_results.get(i).z, sdlquery.dataset, queryExecutor),1)));
+			result.outputCharts.get(i).setyData(Data.doubleToString(Data.getColumn(Data.fetchSingleData(sdlquery.x,sdlquery.y,sdlquery.z, top_k_results.get(i).z, sdlquery.dataset, queryExecutor),2)));
 			result.outputCharts.get(i).setRank(i+1);
 			result.outputCharts.get(i).setxType(sdlquery.x);
 			result.outputCharts.get(i).setyType(sdlquery.y);

@@ -20,7 +20,6 @@ public class Tuple {
 	public static Tuple[] toRealIndexes(Tuple[] tuples , List<Segment> s1){
 		Tuple[] result = new Tuple[tuples.length];
 		List<Integer> realIndexes = SdlMain.getIndexes(s1);
-		
 		for(int i = 0 ; i < tuples.length ; i++){
 			result[i] = new Tuple(realIndexes.get(tuples[i].start_idx),realIndexes.get(tuples[i].end_idx));
 		}
