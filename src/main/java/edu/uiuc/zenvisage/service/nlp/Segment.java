@@ -10,11 +10,9 @@ public class Segment{
 	 double slope , beta , error;
 	 
 	/*Constructor of segment*/
-	public  Segment(int start_idx,int end_idx , double[][] data){
-		
+	public Segment(int start_idx,int end_idx , double[][] data){
 		this.start_idx = start_idx;
 		this.end_idx = end_idx;
-		
 		SimpleRegression regression = new SimpleRegression();	
 		regression.addData(Data.getPart(start_idx, end_idx, data)); 
 		this.slope = regression.getSlope();
@@ -22,12 +20,15 @@ public class Segment{
 		this.error = regression.getSumSquaredErrors();
 	}
 	
+	/*Creates a segment from a tuple*/
 	/*Create Segment from a tuple*/
 	public static Segment createSegment(Tuple tuple , double[][] data){
 		return new Segment(tuple.start_idx,tuple.end_idx,data);
 	}
 	
 	/*Create List of segments from array of tuples*/
+	
+	/*Creates a list of segments from a list of tuples*/
 	public static List<Segment> createListSegment(Tuple[] tuples , double[][] data){
 		List<Segment> result = new ArrayList<>();
 		int i = 0;
@@ -46,6 +47,8 @@ public class Segment{
 	}
 	
 	/*Print value of a segment*/
+	
+	/*Print a single segment(values)*/
 	public static void printSegment(Segment segment){
 		System.out.println("The start index is : " +segment.start_idx);
 		System.out.println("The end index is : " +segment.end_idx);
@@ -56,6 +59,8 @@ public class Segment{
 	}
 	
 	/*Print value of list of segments*/
+	
+	/*Print a list of segments*/
 	public static void printListSegments(List<Segment> segments){
 		for(Segment s : segments){
 			printSegment(s);
@@ -64,16 +69,10 @@ public class Segment{
 	
 	/*Merge 2 segments*/
 	public static Segment mergeSegments(Segment seg1 , Segment seg2 , double[][] data){
-		int result_start_idx = -1 , result_end_idx = -1;//Assign dummy value
-		
-//		if(seg1.end_idx == (seg2.start_idx-1)){
-			result_start_idx = seg1.start_idx;
-			result_end_idx = seg2.end_idx;   
-//		}
-		
-		Segment result = new Segment(result_start_idx,result_end_idx,data);
-		return result;
+		return new Segment(seg1.start_idx,seg2.end_idx,data);
+
 	}
+	
 	
 	/*Create list of segments of length min_size each from data*/
 	public static List<Segment> initialize(double[][] data , int min_size){
@@ -95,6 +94,7 @@ public class Segment{
 	}
 	
 	/*Gives total error of a list of segments*/
+	/*Computes total error of list of segments*/
 	public static double getError(List<Segment> segments){
 		double total_error = segments.get(0).error ;
 		
@@ -137,27 +137,26 @@ public class Segment{
 		return result;
 	}
 	
-	/*Applies bottomUp until max_error is reached      TODO: ADD DESIRED_SIZE*/
-	public static List<Segment> smoothing(int min_size , double max_error , double[][] data){
-		List<Segment> smooth = Segment.initialize(data,min_size);
-		
+	
+	/*Applies bottomUp until max_error is reached*/
+	public static List<Segment> smoothing(int min_size , int nb_segments /*double max_error */, double[][] data){
+		List<Segment> smooth = Segment.initialize(data,min_size);	
+		/*
 		List<Segment> smooth_test1 = Segment.initialize(data,min_size);
 		List<Segment> smooth_test2 = Segment.initialize(data,min_size);
 		
-		int desired_size = 5;//if desired_size == max number of segments set error to 0 (no smoothing)
-		
-		while(smooth_test1.size() != desired_size + 1){
+		while(smooth_test1.size() != nb_segments + 1){
 			smooth_test1 = Segment.bottomUp(smooth_test1,data);
 		}
 		
-		while(smooth_test2.size() != desired_size){
+		while(smooth_test2.size() != nb_segments){
 			smooth_test2 = Segment.bottomUp(smooth_test2,data);
 		}
-		
+		*/
 		//that's the error to get desired_size
 //		System.out.println("TO GET "+desired_size+ " SEGMENTS IN SMOOTH VERSION SET ERROR BIGGER THAN " +Segment.getError(smooth_test1)+" AND SMALLER THAN " +Segment.getError(smooth_test2)+ "\n"); 
 
-		while(Segment.getError(smooth) < max_error && smooth.size() > 1){;
+		while(/*Segment.getError(smooth) < max_error && */ smooth.size() != nb_segments){;
 			smooth = Segment.bottomUp(smooth,data);//error here is maximal error permitted per merge / shallow copy of smooth
 		}
 //		System.out.println("NUMBER OF SEGMENTS OF SMOOTH VERSION IS : "+smooth.size()+"\n");

@@ -354,8 +354,8 @@ app.factory('plotResults', function() {
 });
 
 app.controller('options-controller', [
-  '$scope', '$rootScope', '$http', 'ChartSettings', '$compile',
-  function($scope, $rootScope, $http, ChartSettings, $compile){
+  '$scope', '$rootScope', '$http', 'plotResults','ChartSettings', '$compile',
+  function($scope, $rootScope, $http,plotResults, ChartSettings, $compile){
     $scope.similarity = 'Euclidean';
     $scope.representative = 'kmeans';
     $scope.aggregation = 'avg';
@@ -474,7 +474,7 @@ app.controller('options-controller', [
         console.log("execute SDL: success");
         if (response.length == 0){console.log("empty response")}
         console.log(response);
-     //   plotResults.displayUserQueryResults(response.outputCharts,$scope.flipY,true);
+        plotResults.displayUserQueryResults(response.outputCharts,$scope.flipY,true);
       }).
       error(function(response) {
         console.log("getUserQueryResults: fail");

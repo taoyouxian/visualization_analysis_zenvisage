@@ -14,6 +14,9 @@ public class Data{
 	private String username = "postgres";
 	private String password = "zenvisage";
 	Connection c = null;
+	
+	/*Stores list of Z values*/
+	public static ArrayList<String> allZs = new ArrayList<>();
 
 	// Initialize connection
 	public Data() {
@@ -58,9 +61,8 @@ public class Data{
 		+ " WHERE " + Z + " = '" + singleValue.replaceAll("'","''")  //escaping single quotes
 		+ "' GROUP BY " + X
 		+ " ORDER BY "+ X;
-		
-//		String sql =  "SELECT Year,avg(SoldPrice) FROM real_estate WHERE City = 'Chicago' GROUP BY Year ORDER BY Year;";
-//		System.out.println("Current city : "+singleValue);
+		/*+ " LIMIT 25000";*/
+
 		ResultSet rows = executor.query(sql);
 		
 		/*Finds the length of the table(ResultSet)*/
@@ -72,9 +74,7 @@ public class Data{
 			  rows.beforeFirst(); 
 		}
 		
-		
 		double[][] result = new double[rowcount][2];
-		
 		
 		/*Print table*/
 //		while(rows.next()){
@@ -97,16 +97,34 @@ public class Data{
 	
 	/*Gets the data of a all z values from Postgres and stores it in a list*/
 	public static ArrayList<double[][]> fetchAllData(String X , String Y , String Z , String tableName ) throws SQLException, ClassNotFoundException{
-		
-		ArrayList<double[][]> result = new ArrayList<>();
+		/*ArrayList<double[][]> result = new ArrayList<>();*/
+		ArrayList<ArrayList<double[]>> result = new ArrayList<>();
 		Data queryExecutor = new Data();
-		String sql = "SELECT DISTINCT " + Z + " FROM " + tableName;
-		ResultSet rows = queryExecutor.query(sql);
 		
-		while(rows.next()){
-			result.add(fetchSingleData(X,Y,Z,rows.getString(1),tableName , queryExecutor));
+		/*String sql = "SELECT DISTINCT " + Z + " FROM " + tableName;*/
+		String sql = "SELECT " + Z + "," + X + "," +"avg(" + Y + ")"
+				+ " FROM " + tableName 
+				+ " GROUP BY " + Z + "," + X
+				+ " ORDER BY "+ Z + "," + X;
+				
+		ResultSet rows = queryExecutor.query(sql);
+		String z = "" ;
+		int i = -1;
+		int j = 0;
+		
+		while(rows.next()){		
+			if(!z.equals(rows.getString(Z))){
+				i++;
+				allZs.add(i,rows.getString(Z));
+				result.add(i, new ArrayList<>());
+				z = rows.getString(Z);
+				j = 0 ;
+			}
+			double[] row = {rows.getDouble(X),rows.getDouble("AVG")};
+			result.get(i).add(j,row);
+			j++;
 		}
-		return result;
+		return toArrayListDouble(result);
 	}
 	
 	/*Gives a slice of the data*/
@@ -134,7 +152,77 @@ public class Data{
 	
 	/*Returns the keywords in the pattern*/
 	public static String[] toKeywords(String pattern){
-		return pattern.split("\\s+");
+		return pattern.split("\\P{L}+"); // change to , 
+	}
+	
+	/*Converts  array of double to array of strings*/
+	public static ArrayList<String> doubleToString(double[] data){
+		ArrayList<String> dataString = new ArrayList<>();
+		for(int i = 0 ; i < data.length ; i++){
+			dataString.add(i,Double.toString(data[i]));
+		}
+		return dataString;
+	}
+	
+	/*Returns column: index_column of data*/
+	public static double[] getColumn(double[][] data , int index_column){
+		double[] column = new double[data.length];
+		for(int i = 0 ; i < data.length ; i++){
+			column[i]  = data[i][index_column-1];
+		}
+		return column;
+	}
+	
+	/*Converts ArrayList<ArrayList<double[]>> to ArrayList<double[][]>*/
+	public static ArrayList<double[][]> toArrayListDouble(ArrayList<ArrayList<double[]>> list){
+		ArrayList<double[][]> result = new ArrayList<>();
+		for(int i = 0 ; i < list.size() ; i++){
+			double[][] data = new double[list.get(i).size()][2];
+			for(int j = 0 ; j < data.length ; j++){
+				data[j][0] = list.get(i).get(j)[0];
+				data[j][1] = list.get(i).get(j)[1];
+			}
+			result.add(i,data);
+		}
+		return result;
+	}
+	
+	/*Computes mean of data*/
+	public static double getMean(double data[]){
+        double sum = 0.0;
+        for(double a : data)
+            sum += a;
+        return sum/data.length;
+    }
+	
+	/*Computes variance of data*/
+	public static double getVariance(double data[]){
+        double mean = getMean(data);
+        double tmp = 0;
+        for(double a :data)
+            tmp += (a-mean)*(a-mean);
+        return tmp/(data.length-1);
+    }
+	
+	/*Computes standard deviation of data*/
+	public static double getStdDev(double data[]){
+        return Math.sqrt(getVariance(data));
+    }
+	
+	/*zNormalizes the data*/
+	public static double[] zNormalize(double data[]){
+		
+		double[] result = new double[data.length];
+		double mu = getMean(data);
+		double sigma = getStdDev(data);
+		for(int i = 0 ; i < data.length ; i++){
+			if(sigma == 0){
+				result[i] = 0 ;
+			}else{
+				result[i] = (data[i]-mu)/sigma;
+			}
+		}
+		return result;
 	}
 	
 }
