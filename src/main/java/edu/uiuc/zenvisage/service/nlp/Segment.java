@@ -20,14 +20,11 @@ public class Segment{
 		this.error = regression.getSumSquaredErrors();
 	}
 	
-	/*Creates a segment from a tuple*/
 	/*Create Segment from a tuple*/
 	public static Segment createSegment(Tuple tuple , double[][] data){
 		return new Segment(tuple.start_idx,tuple.end_idx,data);
 	}
-	
-	/*Create List of segments from array of tuples*/
-	
+		
 	/*Creates a list of segments from a list of tuples*/
 	public static List<Segment> createListSegment(Tuple[] tuples , double[][] data){
 		List<Segment> result = new ArrayList<>();
@@ -46,8 +43,6 @@ public class Segment{
 		return new Segment(s.start_idx,s.end_idx,data);
 	}
 	
-	/*Print value of a segment*/
-	
 	/*Print a single segment(values)*/
 	public static void printSegment(Segment segment){
 		System.out.println("The start index is : " +segment.start_idx);
@@ -57,9 +52,7 @@ public class Segment{
 		System.out.println("The error of segment is : " +segment.error);
 		System.out.println("---------------------------------");
 	}
-	
-	/*Print value of list of segments*/
-	
+
 	/*Print a list of segments*/
 	public static void printListSegments(List<Segment> segments){
 		for(Segment s : segments){
@@ -73,7 +66,6 @@ public class Segment{
 
 	}
 	
-	
 	/*Create list of segments of length min_size each from data*/
 	public static List<Segment> initialize(double[][] data , int min_size){
 		List<Segment> segments = new ArrayList<Segment>(); 
@@ -81,7 +73,10 @@ public class Segment{
 //		for(int i = 0 ; i < data.length - min_size ; i++){
 //				segments.add(new Segment(i,i+min_size-1,data));
 //		}
-		
+		if(!(data.length > 2)){
+			segments.add(new Segment(0,1,data));
+			return segments;
+		}
 		for(int i = 0 ; i < data.length  ; i+= min_size-1){
 			if(i+min_size >= data.length){
 				segments.add(new Segment(i,data.length-1,data));
@@ -93,7 +88,6 @@ public class Segment{
 		return segments;
 	}
 	
-	/*Gives total error of a list of segments*/
 	/*Computes total error of list of segments*/
 	public static double getError(List<Segment> segments){
 		double total_error = segments.get(0).error ;
@@ -125,19 +119,21 @@ public class Segment{
 	    	}
 	    }
 	    
-	    for(int i = 0 ; i < nb_segments ; i++){
-	    	if(i == merge_idx){
-	    		result.add(mergeSegments(segments.get(i),segments.get(i+1),data));
-	    		++i;
-	    	}else{
-	    		result.add(segments.get(i));
-	    	}
+	    if(nb_segments == 1){
+	    	result.add(segments.get(0));
+	    }else{
+		    for(int i = 0 ; i < nb_segments ; i++){
+		    	if(i == merge_idx){
+		    		result.add(mergeSegments(segments.get(i),segments.get(i+1),data));
+		    		++i;
+		    	}else{
+		    		result.add(segments.get(i));
+		    	}
+		    }
 	    }
-	    
 		return result;
 	}
-	
-	
+
 	/*Applies bottomUp until max_error is reached*/
 	public static List<Segment> smoothing(int min_size , int nb_segments /*double max_error */, double[][] data){
 		List<Segment> smooth = Segment.initialize(data,min_size);	
@@ -155,10 +151,11 @@ public class Segment{
 		*/
 		//that's the error to get desired_size
 //		System.out.println("TO GET "+desired_size+ " SEGMENTS IN SMOOTH VERSION SET ERROR BIGGER THAN " +Segment.getError(smooth_test1)+" AND SMALLER THAN " +Segment.getError(smooth_test2)+ "\n"); 
-
-		while(/*Segment.getError(smooth) < max_error && */ smooth.size() != nb_segments){;
+		
+		while(/*Segment.getError(smooth) < max_error && */ smooth.size() != nb_segments && smooth.size() > 1){;
 			smooth = Segment.bottomUp(smooth,data);//error here is maximal error permitted per merge / shallow copy of smooth
 		}
+		
 //		System.out.println("NUMBER OF SEGMENTS OF SMOOTH VERSION IS : "+smooth.size()+"\n");
 		return smooth;
 	}

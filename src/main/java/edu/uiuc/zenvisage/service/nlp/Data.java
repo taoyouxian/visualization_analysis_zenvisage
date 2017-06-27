@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-/* data is data[n][2]*/
+/*data is data[n][2]*/
 public class Data{
 	private String database = "postgres";
 	private String host = "jdbc:postgresql://localhost:5432/"+database;
@@ -41,13 +41,14 @@ public class Data{
 	      }
 	}
 	
+	/*Given a SQL query returns a ResultSet*/
 	public ResultSet query(String sQLQuery) throws SQLException {
 	      Statement stmt = c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
 	      ResultSet ret = stmt.executeQuery(sQLQuery);;
 	      return ret;
 	}
 	
-	/*Gets the data of a single z value from Postgres and stores it in a 2d array*/
+	/*Gets the data of a single z value from Postgres and stores it in a 2D array*/
 	public static double[][]  fetchSingleData(String X , String Y ,String Z , String singleValue , String tableName , Data executor) throws SQLException, ClassNotFoundException{
 //		SQLQueryExecutor queryExecutor = new SQLQueryExecutor();
 		
