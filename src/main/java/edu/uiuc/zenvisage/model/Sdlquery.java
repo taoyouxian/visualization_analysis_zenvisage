@@ -9,6 +9,7 @@ public class Sdlquery {
 	public String dataset;
 	public String sdlsegments;
 	public String sdltext;
+    public String approach;
 	
 	
 	
@@ -48,6 +49,13 @@ public class Sdlquery {
 	}
 	public void setDataset(String dataset) {
 		this.dataset = dataset;
+	}
+	
+	public String getApproach() {
+		return approach;
+	}
+	public void setApproach(String approach) {
+		this.approach = approach;
 	}
 
 }

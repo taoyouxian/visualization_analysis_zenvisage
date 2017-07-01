@@ -86,6 +86,15 @@ public class DatabaseAutoLoader {
 		dataset4.add(file.getAbsolutePath());
 		file = new File(zvServer.getClass().getClassLoader().getResource(("cmu_clean.txt")).getFile());
 		dataset4.add(file.getAbsolutePath());
+		
+		List<String> dataset5 = new ArrayList<String>(); //cmu
+		dataset4.add("data1");
+		file = new File(zvServer.getClass().getClassLoader().getResource(("data1.csv")).getFile());
+		dataset4.add(file.getAbsolutePath());
+		file = new File(zvServer.getClass().getClassLoader().getResource(("data_schema.txt")).getFile());
+		dataset4.add(file.getAbsolutePath());
+		
+		
 
 
 		//		List<String> dataset3 = new ArrayList<String>(); //flight

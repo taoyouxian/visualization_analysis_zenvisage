@@ -202,7 +202,7 @@ public class Data{
         double tmp = 0;
         for(double a :data)
             tmp += (a-mean)*(a-mean);
-        return tmp/(data.length-1);
+        return tmp/(data.length);
     }
 	
 	/*Computes standard deviation of data*/

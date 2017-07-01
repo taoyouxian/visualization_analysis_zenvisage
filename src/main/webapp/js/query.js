@@ -150,6 +150,7 @@ function Sdlquery() {
 	  this.dataset= getSelectedDataset();
 	  this.sdlsegments=getSdlNumSegments();
 	  this.sdltext=getSdlText();
+	  this.approach = getSdlApproach();
 }
 
 function getSdlText()
@@ -161,3 +162,9 @@ function getSdlNumSegments()
 {
  return angular.element($("#sdl")).scope().sdlsegments;
 }
+
+function getSdlApproach()
+{
+ return angular.element($("#sdl")).scope().approach;
+}
+

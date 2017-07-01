@@ -25,5 +25,14 @@ public class Tuple {
 		}
 		return result;
 	}
+	
+	//TODO : remove toTuple
+	public static Tuple[] toTuple(List<Integer> indexes){
+		Tuple[] result = new Tuple[indexes.size()-1];
+		for(int i = 0 ; i < result.length ; i++){
+			result[i] = new Tuple(indexes.get(i),indexes.get(i+1));
+		}
+		return result;
+	}
 }
 		

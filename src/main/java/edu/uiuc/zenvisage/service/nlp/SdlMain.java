@@ -22,8 +22,7 @@ public class SdlMain {
 	static int topK = 10;  
 
 	/*Takes a pattern and a list of segments and returns a score */
-	public static double getScore(List<Segment> s1 , String[] pattern){
-		//Assume s1.size()  == pattern.length
+	public static double getScore1(List<Segment> s1 , String[] pattern){
 		double score = 0 ;
 		int overall_length = s1.get(s1.size()-1).end_idx-s1.get(0).start_idx;
 		
@@ -44,8 +43,49 @@ public class SdlMain {
 		return score;
 	}
 	
+	/*Takes a pattern and a list of segments and returns a score */
+	public static double getScore2(List<Segment> s1 , String[] pattern , Tuple[] tuples){
+		double score = 0;
+		double[] scores = new double[pattern.length] ;
+		
+		
+		int tuples_size = tuples.length;
+		
+		int overall_length = s1.get(s1.size()-1).end_idx-s1.get(0).start_idx;
+		
+		int j = 0 ;
+		
+		for(int i = 0 ; i < s1.size() ; i++){
+			int segment_length = s1.get(i).end_idx-s1.get(i).start_idx;
+			
+			//TODO : Leave this check?
+//			if(i < pattern.length){
+				switch(pattern[j]){
+				case "up" : scores[j] += ((Math.atan(s1.get(i).slope)/(Math.PI/2))*segment_length)/(overall_length);
+							break;
+				case "flat" : scores[j] += ((1-Math.abs(Math.atan(s1.get(i).slope)/(Math.PI/2)))*segment_length)/(overall_length);
+							break;
+				case "down" : scores[j] -= ((Math.atan(s1.get(i).slope)/(Math.PI/2))*segment_length)/(overall_length);
+							break;		
+				}
+//			}
+//			System.out.println(s1.get(i).end_idx+" and " +tuples[j].end_idx);
+//			System.out.println("before " +j);
+			if(s1.get(i).end_idx == tuples[tuples_size-j-1].end_idx){
+				j++;
+			}
+		}
+		
+		for(int k = 0 ; k < scores.length ; k++){
+			score += scores[k]/pattern.length;
+		}
+		
+		return score;
+	}
+	/* TODO : ADD GET PATTERN LENGTH AND SEG OVERALL LENGTH*/
+
 	/*Takes a list of segments and gives all possible partitions */
-	public static List<List<Segment>> partition(List<Segment> s1 , int partitions , double[][] data){
+	public static List<List<Segment>> partition1(List<Segment> s1 , int partitions , double[][] data){
 		List<List<Segment>> result = new ArrayList<List<Segment>>();
 		
 		if(s1.size() < partitions){
@@ -53,7 +93,7 @@ public class SdlMain {
 			return result;
 		}
 		
-		SdlMain.divide(0, partitions, new Tuple[partitions], s1.size());
+		SdlMain.divide1(0, partitions, new Tuple[partitions], s1.size());
 	
 		int i = 0;
 		for(Tuple[] tuples : allPartitions){
@@ -63,8 +103,16 @@ public class SdlMain {
 		return result;
 	}
 	
+	/*Takes a list of segments and gives all possible partitions */
+	public static void partition2(List<Segment> s1 , int partitions , double[][] data){
+		if(s1.size() < partitions){
+			 allPartitions.add(Tuple.toTuple(SdlMain.getIndexes(s1)));
+		}
+		SdlMain.divide2(s1,0, partitions, new Tuple[partitions], s1.size());
+	}
+	
 	/*Creates all partitions possible of a set*/
-	public static void divide(int start , int partition , Tuple[] tab , int size){
+	public static void divide1(int start , int partition , Tuple[] tab , int size){
 //		if(size < partition){
 //			tab[0] = new Tuple(start , size);
 //			allPartitions.add(tab);
@@ -75,7 +123,24 @@ public class SdlMain {
 			}else{
 				for(int i = start + 1 ; i < size - partition + 2 ; i++){
 					tab[partition-1] = new Tuple(start,i);
-					divide(i,partition-1,tab.clone(),size);
+					divide1(i,partition-1,tab.clone(),size);
+				}
+			}
+		}
+	
+	/*Creates all partitions possible of a set*/
+	public static void divide2(List<Segment> s1 ,int start , int partition , Tuple[] tab , int size){
+//		if(size < partition){
+//			tab[0] = new Tuple(start , size);
+//			allPartitions.add(tab);
+//		}else{
+			if(partition == 1){
+				tab[0] = new Tuple(start , size); 
+				allPartitions.add(Tuple.toRealIndexes(tab,s1));
+			}else{
+				for(int i = start + 1 ; i < size - partition + 2 ; i++){
+					tab[partition-1] = new Tuple(start,i);
+					divide2(s1,i,partition-1,tab.clone(),size);
 				}
 			}
 		}
@@ -92,16 +157,16 @@ public class SdlMain {
 	}
 	
 	/*Returns the partition that maximizes the score*/
-	public static List<Segment> getBestPartition(int min_size , int nb_segments/*double max_error */, String[] pattern , double[][] data){
+	public static List<Segment> getBestPartition1(int min_size , int nb_segments/*double max_error */, String[] pattern , double[][] data){
 		/*Smooth our segments then give all partitions possible*/
-		List<List<Segment>> result = SdlMain.partition(Segment.smoothing(min_size,nb_segments,data),pattern.length, data); 
+		List<List<Segment>> result = SdlMain.partition1(Segment.smoothing(min_size,nb_segments,data),pattern.length, data); 
 		List<Double> scores = new ArrayList<>();
 		/*Score and rank*/
 		for(List<Segment> segments : result){
 //			System.out.println("//////////////////////////////////////////");
 			List<Segment> reversed = Lists.reverse(segments);
 //			Segment.printListSegments(reversed);
-			scores.add(SdlMain.getScore(reversed,pattern));
+			scores.add(SdlMain.getScore1(reversed,pattern));
 //			System.out.println("SCORE OF LIST IS  "+ Query.getScore(reversed,pattern));
 //			System.out.println("//////////////////////////////////////////\n");
 		}
@@ -121,6 +186,46 @@ public class SdlMain {
 //		System.out.println("The partition with the best score : " +max_score+" is : \n");
 //		Segment.printListSegments(Lists.reverse(result.get(max_idx)));
 	}
+
+	/*Returns the partition that maximizes the score*/
+	public static Tuple[] getBestPartition2(int min_size , int nb_segments/*double max_error */, String[] pattern , double[][] data){
+		/*Smooth our segments then give all partitions possible*/
+		List<Segment> segments = Segment.smoothing(min_size,nb_segments,data);
+		SdlMain.partition2(segments,pattern.length, data); 
+		List<Double> scores = new ArrayList<>();
+//		Segment.printListSegments(segments);
+		/*Score and rank*/
+		for(Tuple[] tuples  : allPartitions){
+//			System.out.println("new tuple : ");
+//			System.out.println("//////////////////////////////////////////");
+//			for(Tuple a : tuples){
+//				System.out.println("Tuple : ("+a.start_idx+","+a.end_idx+")");
+//			}
+//			System.out.println("score of this tuple ^ is : " +SdlMain.getScore(segments,pattern,tuples));
+			scores.add(SdlMain.getScore2(segments,pattern,tuples));
+//			System.out.println("SCORE OF LIST IS  "+ SdlMain.getScore(reversed,pattern));
+//			System.out.println("//////////////////////////////////////////\n");
+		}
+//		System.out.println("Number of possibities is "+result.size()+"\n");
+		int max_idx = -1;
+		double max_score = Double.NEGATIVE_INFINITY;
+		
+//		for(double score : scores){
+//			System.out.println(score);
+//		}
+		
+		for(int i = 0 ; i < scores.size() ; i++){
+			if(scores.get(i) > max_score){
+				max_idx = i;
+				max_score = scores.get(i);
+			}
+		}
+//		System.out.println("max score " +max_score);
+//		System.out.println("------------------------------------");
+		return allPartitions.get(max_idx);
+//		System.out.println("The partition with the best score : " +max_score+" is : \n");
+//		Segment.printListSegments(Lists.reverse(result.get(max_idx)));
+	}
 	
 	/*Prints top K best visualizations */
 	public static Result executeSdlQuery(Sdlquery sdlquery) throws ClassNotFoundException, SQLException{
@@ -130,7 +235,7 @@ public class SdlMain {
 		String tableName = sdlquery.dataset;
 		String keywords = sdlquery.sdltext;  
 		int nb_segments = Integer.parseInt(sdlquery.sdlsegments);
-		
+		String approach = sdlquery.approach;
 		long tStart1 = System.currentTimeMillis();
 		
 //		/* Get list of Zs*/  //TODO:Get it from fetchAllData
@@ -181,37 +286,61 @@ public class SdlMain {
 		
 		long tStart4 = System.currentTimeMillis();
 		
-		/*Store best representation with its z value*/
-		for(int i = 0 ; i < data.size() ; i++){
-			/*Test if we can have at least one segment*/
-			if(data.get(i).length > 1){
-//				TODO:Remove
-				bestOfEachZ.add(new SegmentsAndZ(SdlMain.getBestPartition(min_size, nb_segments, pattern , data.get(i)), zs.get(i), data.get(i)));
-				//bestOfEachZ.add(new SegmentsAndZ(Segment.initialize(data.get(i), 2), zs.get(i), data.get(i)));
-				
-			}
-			allPartitions.clear();
+		if(approach.equals("approach1")){
+			/*Store best representation with its z value*/
+			for(int i = 0 ; i < data.size() ; i++){
+				/*Test if we can have at least one segment*/
+				if(data.get(i).length > 1){
+						bestOfEachZ.add(new SegmentsAndZ(SdlMain.getBestPartition1(min_size, nb_segments, pattern , data.get(i)), zs.get(i), data.get(i)));
+					}
+					//bestOfEachZ.add(new SegmentsAndZ(Segment.initialize(data.get(i), 2), zs.get(i), data.get(i)));
+				}
+				allPartitions.clear();
+		}else{
+			for(int i = 0 ; i < data.size() ; i++){
+				/*Test if we can have at least one segment*/
+				if(data.get(i).length > 1){
+					bestOfEachZ.add(new SegmentsAndZ(Segment.smoothing(min_size,nb_segments,data.get(i)),SdlMain.getBestPartition2(min_size, nb_segments, pattern , data.get(i)), zs.get(i), data.get(i)));
+					}
+					//bestOfEachZ.add(new SegmentsAndZ(Segment.initialize(data.get(i), 2), zs.get(i), data.get(i)));
+				}
+				allPartitions.clear();
 		}
 		
 		long tEnd4 = System.currentTimeMillis();
 		System.out.println("Elapsed time to get best partitions "+(tEnd4-tStart4));
 		
 		long tStart5 = System.currentTimeMillis();	
-		
-		/*Sort list of segments depending on score*/
-		Collections.sort(bestOfEachZ, new Comparator<SegmentsAndZ>() {
-	        @Override public int compare(SegmentsAndZ s1, SegmentsAndZ s2) {
-	        	if(SdlMain.getScore(s1.segments, pattern) <  SdlMain.getScore(s2.segments, pattern)){
-	        		return 1;
-	        	}else if(SdlMain.getScore(s1.segments, pattern) >  SdlMain.getScore(s2.segments, pattern)){
-	        		return -1;
-	        	}else{
-	        		return 0;
-	        	}
-//	            return (SdlMain.getScore(s1.segments, pattern) <  SdlMain.getScore(s2.segments, pattern) ? 1 : -1); 
-	        }
-		});
-		
+	
+		if(approach.equals("approach1")){
+			/*Sort list of segments depending on score*/
+			Collections.sort(bestOfEachZ, new Comparator<SegmentsAndZ>() {
+		        @Override public int compare(SegmentsAndZ s1, SegmentsAndZ s2) {
+		        	if(SdlMain.getScore1(s1.segments, pattern) <  SdlMain.getScore1(s2.segments, pattern)){
+		        		return 1;
+		        	}else if(SdlMain.getScore1(s1.segments, pattern) >  SdlMain.getScore1(s2.segments, pattern)){
+		        		return -1;
+		        	}else{
+		        		return 0;
+		        	}
+	//	            return (SdlMain.getScore(s1.segments, pattern) <  SdlMain.getScore(s2.segments, pattern) ? 1 : -1); 
+		        }
+			});
+		}else{
+			/*Sort list of segments depending on score*/
+			Collections.sort(bestOfEachZ, new Comparator<SegmentsAndZ>() {
+		        @Override public int compare(SegmentsAndZ s1, SegmentsAndZ s2) {
+		        	if(SdlMain.getScore2(s1.segments, pattern , s1.tuples) <  SdlMain.getScore2(s2.segments, pattern,s2.tuples)){
+		        		return 1;
+		        	}else if(SdlMain.getScore2(s1.segments, pattern , s1.tuples) >  SdlMain.getScore2(s2.segments, pattern,s2.tuples)){
+		        		return -1;
+		        	}else{
+		        		return 0;
+		        	}
+	//	            return (SdlMain.getScore(s1.segments, pattern) <  SdlMain.getScore(s2.segments, pattern) ? 1 : -1); 
+		        }
+			});
+		}
 		long tEnd5 = System.currentTimeMillis();
 		System.out.println("Elapsed time to sort "+(tEnd5-tStart5));
 		
@@ -219,13 +348,24 @@ public class SdlMain {
 		
 		/*Returns the top k visualizations*/
 		int top_K = Math.min(topK,bestOfEachZ.size());
-		
-		for(int i = 0 ; i < top_K  ; i++){
-			//System.out.println("Place number "+ (i+1) + " with score : "+SdlMain.getScore(bestOfEachZ.get(i).segments, pattern));
-			System.out.println("z is : "+bestOfEachZ.get(i).z);
-			Segment.printListSegments(bestOfEachZ.get(i).segments);
-			System.out.println("////////////////");
+		if(approach.equals("approach1")){
+			for(int i = 0 ; i < top_K  ; i++){
+				//System.out.println("Place number "+ (i+1) + " with score : "+SdlMain.getScore(bestOfEachZ.get(i).segments, pattern));
+				System.out.println("z is : "+bestOfEachZ.get(i).z);
+				System.out.println("score is  : "+SdlMain.getScore1(bestOfEachZ.get(i).segments, pattern));
+				Segment.printListSegments(bestOfEachZ.get(i).segments);
+				System.out.println("////////////////");
+			}
+		}else{
+			for(int i = 0 ; i < top_K  ; i++){
+				//System.out.println("Place number "+ (i+1) + " with score : "+SdlMain.getScore(bestOfEachZ.get(i).segments, pattern));
+				System.out.println("z is : "+bestOfEachZ.get(i).z);
+				System.out.println("score is  : "+SdlMain.getScore2(bestOfEachZ.get(i).segments, pattern,bestOfEachZ.get(i).tuples));
+				Segment.printListSegments(bestOfEachZ.get(i).segments);
+				System.out.println("////////////////");
+			}
 		}
+
 		
 		
 		long tEnd6 = System.currentTimeMillis();
