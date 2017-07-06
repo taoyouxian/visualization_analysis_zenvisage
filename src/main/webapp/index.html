@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 <!DOCTYPE html>
 <html lang="en" ng-app="zenvisage">
   <head>
@@ -571,6 +572,629 @@
     <script src="js/zqlgraph.js"></script>
     <script src="js/slider.js"></script>
     <script src="js/colorbar.js"></script>
+    <script>
+      // var tree = tree();
+      // tree.initialize();
+      $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip({html: true});
+      });
+    </script>
+
+
+
+
+  </body>
+
+</html>
+=======
+<!DOCTYPE html>
+<html lang="en" ng-app="zenvisage">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Data Exploration</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/resources/demos/style.css">
+    <!-- <link href="css/draw.css" rel="stylesheet"> -->
+    <link href="css/graph.css" rel="stylesheet">
+    <link href="css/font-awesome.min.css" rel="stylesheet">
+  </head>
+  <body>
+    <!-- this div contains everything in the body -->
+
+    <div id="everything">
+      <!-- Modal -->
+      <form id="uploaderForm" action="/zv/fileUpload" enctype="multipart/form-data" method="post">
+        <div class="modal fade bd-example-modal-sm" id="uploaderModal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Upload your own dataset</h4>
+              </div>
+              <div class="modal-body">
+                Dataset name<input id="datasetNameInput" type="text" name="datasetName"><br/><br/>
+                <div class="row">
+                  <div class="col-md-5">
+                    <input type="file" class="filestyle" data-classButton="btn btn-primary" data-input="false" data-classIcon="icon-plus" data-buttonText="Choose dataset file" name="csv">
+                  </div>
+                  <div class="col-md-5 col-md-offset-1">
+                    <input type="file" class="filestyle" data-classButton="btn btn-primary" data-input="false" data-classIcon="icon-plus" data-buttonText="Choose schema file" name="schema">
+                  </div>
+                </div>
+              </div>
+                <div class="modal-footer">
+                <input id="submitButton" type="submit" class="btn btn-primary" value="Upload">
+                </div>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div class="modal fade" id="pattern-upload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" ng-controller="classCreationController">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Upload Query Data Pattern</h4>
+            </div>
+            <div class="modal-body" id="pattern-upload-body">
+                JSON Example:  
+                <br>
+                <small>[{"xval":2450552,"yval":13.847},{"xval":2450567,"yval":13.637},{"xval":2450569,"yval":13.717},{"xval":2450597,"yval":14.825},{"xval":2450607,"yval":15.262}]</small>
+              <form id="pattern-upload-form" onsubmit="return patternLoad();">
+                <textarea rows="10" cols="55" id="pattern-upload-textarea">[{"xval":2450552.8300000001,"yval":13.847},{"xval":2450567.79,"yval":13.637},{"xval":2450569.79,"yval":13.717},{"xval":2450571.8100000001,"yval":13.849},{"xval":2450573.75,"yval":13.89},{"xval":2450575.7599999998,"yval":13.985},{"xval":2450578.73,"yval":14.048},{"xval":2450582.7999999998,"yval":14.162},{"xval":2450597.75,"yval":14.825},{"xval":2450607.75,"yval":15.262}]</textarea>
+                <div class="modal-footer">
+                  <input id="submitButton" type="submit" class="btn btn-primary" value="Upload">
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="modal fade" id="class-creation" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" ng-controller="classCreationController">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title">Class creation</h4>
+            </div>
+            <div class="modal-body" id="class-creation-body">
+              <div class="row">
+                <div class="col-md-5">
+                  classes
+                </div>
+                <div class="col-md-7">
+                  values
+                </div>
+              </div>
+              <div id="class-rows">
+                <div class="row" id="class-row-1">
+                  <div class="col-md-5">
+                    <div class="dropdown">
+                      <select name="select" ng-model="option1">
+                        <option value="">    </option>
+                        <option ng-repeat="option1 in AxisInfo" value="{{option1}}">{{option1}}</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <input class="form-control" type="text">
+                  </div>
+                </div>
+
+                <div class="row" id="class-row-2">
+                  <div class="col-md-5">
+                    <div class="dropdown">
+                      <select name="select" ng-model="option2">
+                        <option value="">    </option>
+                        <option ng-repeat="option2 in AxisInfo" value="{{option2}}">{{option2}}</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <input class="form-control" type="text">
+                  </div>
+                </div>
+
+                <div class="row" id="class-row-3">
+                  <div class="col-md-5">
+                    <div class="dropdown">
+                      <select name="select" ng-model="option3">
+                        <option value="">    </option>
+                        <option ng-repeat="option3 in AxisInfo" value="{{option3}}">{{option3}}</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <input class="form-control" type="text">
+                  </div>
+                </div>
+
+                <div class="row" id="class-row-4">
+                  <div class="col-md-5">
+                    <div class="dropdown">
+                      <select name="select" ng-model="option4">
+                        <option value="">    </option>
+                        <option ng-repeat="option4 in AxisInfo" value="{{option4}}">{{option4}}</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <input class="form-control" type="text">
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <div class="modal-footer">
+              <button type="button" id="class-creation-close-button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <button type="button" ng-click="createClasses()"class="btn btn-primary">Create classes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="class-info" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" ng-controller="classInfoController">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title">Created classes</h4>
+            </div>
+            <div class="modal-body" id="class-info-body">
+              <div ng-repeat="class in classes" >
+                <div class="row">
+                  <div class="col-md-2 text-left">
+                    {{class.name}}
+                  </div>
+                  <div class="col-md-10 text-left">
+                    {{class.values}}
+                  </div>
+                </div>
+                <hr ng-if="!$last">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- this div contains the left-bar with the data information -->
+      <div id="left-bar">
+        <div id="sidebar" class="interface" ng-controller="datasetController">
+          <h4>
+            ZenVisage
+          </h4>
+          <div class="dropdown" id="dataset">
+            <h5><b>Dataset</b><button type="button" ng-click="callLoadAxisInfoChildMethod()" class="textButton" data-toggle="modal"  data-target=".bd-example-modal-sm"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> </button></h5>
+            <!-- Button trigger modal -->
+
+            <select class="form-control" ng-change="onDatasetChange()" ng-model="selectedDataset" id="dataset-form-control">
+              <option value="real_estate">Real Estate</option>
+              <option value="flights">flights</option>
+              <option value="cmu">cmu</option>
+              <option value="sales">sales</option>
+              <option value="weather">weather</option>
+            </select>
+          </div>
+          <div>
+            <h5><b>Pattern</b><button type="button" ng-click="callLoadAxisInfoChildMethod()" class="textButton" data-toggle="modal"  data-target="#pattern-upload"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> </button></h5>
+          </div>
+          <div>
+            <h5><b>Category</b>
+
+            <button type="button" class="textButton" ng-click="callLoadAxisInfo()" data-toggle="modal" data-target="#class-creation"><span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span> </button>
+
+            <button type="button" class="textButton" ng-click="callGetClassInfo()" data-toggle="modal" data-target="#class-info"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> </button>
+
+            </h5>
+            <div ng-repeat="category in categories">
+              <label>
+
+                <input type="radio" ng-change="onDataAttributeChange()" value={{category}} ng-model="$parent.selectedCategory"/><span>{{category}}</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <h5><b>X-axis</b></h5>
+            <div ng-repeat="xAxisItem in xAxisItems">
+              <label>
+                    <input type="radio" ng-change="onDataAttributeChange()" value={{xAxisItem}} ng-model="$parent.selectedXAxis"/><span>{{xAxisItem}}</span>
+              </label>
+            </div>
+          </div>
+          <div>
+            <h5><b>Y-axis</b></h5>
+            <div ng-repeat="yAxisItem in yAxisItems">
+              <label>
+                  <input type="radio" ng-change="onDataAttributeChange()" value={{yAxisItem}} ng-model="$parent.selectedYAxis"/><span>{{yAxisItem}}</span>
+              </label>
+            </div>
+          </div>
+        </div> <!-- end side bar -->
+      </div> <!-- end left bar -->
+
+      <!-- this div contains the everything in the middle (aside from the left nav bar) -->
+      <div id="middle-bar">
+
+        <!-- this div contains the drawng interface and the zql table -->
+        <div class="row" id="top-middle-bar" ng-controller="options-controller">
+
+          <!-- drawing interface -->
+          <div class="col-md-4">
+            <div class="input-group" id="graph-buttons" >
+
+              <div class="btn-group" id="left-button-group">
+                <select ng-model="chartSettings.selectedChartOption" ng-options="option for option in chartSettings.chartOptions" class="form-control" ng-change="changeChartType()" id="graph-type">
+                </select>
+              </div>
+
+              <div class="btn-group" >
+                <button type="button" name="options" ng-click="zqltable = !zqltable" data-toggle="button" aria-pressed="false" class="btn btn-default btn-xs">ZQL Table</button>
+                <button type="button" name="topk" ng-click="getTopK()" aria-pressed="false" class="btn btn-default btn-xs">Top K</button>
+                <button type="button" aria-pressed="false" data-toggle="button" ng-click="zqlgraph = !zqlgraph" class="btn btn-default btn-xs">ZQLgraph</button>
+            	<button type="button" aria-pressed="false" data-toggle="button" ng-click="nlp = !nlp" class="btn btn-default btn-xs">NLP</button>
+            	
+                <div ng-show="zqltable && !nlp">
+                  <div class="btn-group">
+                    <button type="button" name="query1" ng-click="populateWeatherQuery1()" aria-pressed="false" class="btn btn-default btn-xs">Q1</button>
+                    <button type="button" name="query2" ng-click="populateWeatherQuery2()" aria-pressed="false" class="btn btn-default btn-xs">Q2</button>
+                    <button type="button" name="query3" ng-click="populateWeatherQuery3()" aria-pressed="false" class="btn btn-default btn-xs">Q3</button>
+                    <!-- <button type="button" name="query1" ng-click="populateQuery1()" aria-pressed="false" class="btn btn-default btn-xs">Q1</button>
+                    <button type="button" name="query2" ng-click="populateQuery2()" aria-pressed="false" class="btn btn-default btn-xs">Q2</button>-->
+                    <button type="button" name="query3" ng-click="populateQuery3()" aria-pressed="false" class="btn btn-default btn-xs">Q4</button>
+                    <button type="button" name="query4" ng-click="populateQuery4()" aria-pressed="false" class="btn btn-default btn-xs">Q5</button>
+                    <button type="button" name="query5" ng-click="populateQuery5()" aria-pressed="false" class="btn btn-default btn-xs">Q6</button>
+                  </div>
+                  <button type="button" name="clearyQuery" ng-click="clearQuery()" aria-pressed="false" class="btn btn-default btn-xs">Clear</button>
+                </div>
+
+
+              </div>
+            </div>
+
+            <div id="draw-div" ng-show="chartSettings.selectedChartOption=='Line'"></div>
+            <div id="scatter-div" ng-controller="scatterController" class="row" ng-show="chartSettings.selectedChartOption=='Scatter'">
+              <div class="col-md-11">
+                  <svg id="main-chart">
+                  </svg>
+
+              </div>
+              <div id="colorbar"></div>
+              <div class="row col-md-1">
+                  <div class="col-md-12">
+                      <div class="buttons-for-drawing btn" ng-click="scatterService.drawPolygon()"><a ><i class="fa fa-plus" aria-hidden="true"></i></a></div>
+                  </div>
+                  <div class="col-md-12">
+                      <div class="buttons-for-drawing btn undo disabled" ng-click="scatterService.undoPolyPoints()"><a><i class="fa fa-undo" aria-hidden="true"></i></a></div>
+                  </div>
+                  <div class="col-md-12">
+                      <div class="buttons-for-drawing btn green-polygon disabled" ng-click="scatterService.changePolygonColorGreen()"><a style="color: forestgreen"><i class="fa fa-square" aria-hidden="true"></i></a></div>
+                  </div>
+                  <div class="col-md-12">
+                      <div class="buttons-for-drawing btn red-polygon disabled" ng-click="scatterService.changePolygonColorRed()"><a style="color: indianred"><i class="fa fa-square" aria-hidden="true"></i></a></div>
+                  </div>
+                  <div class="col-md-12">
+                      <div class="buttons-for-drawing btn  submit disabled" ng-click="submit()"><a><i class="fa fa-arrow-right" aria-hidden="true"></i></a></div>
+                  </div>
+              </div>
+
+          </div>
+
+          </div>
+          <!-- drawing interface END-->
+
+
+
+
+
+          <div class="col-md-8" id="table-div">
+            
+            <div ng-show="nlp">
+
+              <div class="form-group" id="nlp_query">
+
+                <div class="info-text "><b>NLP Query</b></div>
+                <input type="text" ng-model="nlp_query_text" id="nlp_query_text" name="nlp_query_text" class="form-control" spellcheck="true">
+              </div>
+              <button type="submit" class="btn btn-primary center-block btn xs" ng-click="submit_NLP()">Submit</button>
+          
+
+            <ul class="list-group">
+            <label>Query (processed):</label> 
+              <li class="list-group-item list-group-item-danger" id="query"></li>
+            <label>POS Tag:</label> 
+              <li class="list-group-item list-group-item-success" id="pos_tag"></li>
+            <label>Pattern Tag:</label>
+              <li class="list-group-item list-group-item list-group-item-info" id="pat_tag"></li>
+            <label>Segment Structure:</label>
+              <li class="list-group-item list-group-item list-group-item-warning" id="seg_struct"></li>
+
+            </ul>                  
+
+            </div> 
+
+
+            <div ng-show="zqltable && !nlp" ng-controller="zqlTableController">
+              <table id="zql-table" class="table zql-table">
+                <thead>
+                  <tr>
+                    <td><b></b></td>
+                    <td><b></b></td>
+                    <td><b>X</b></td>
+                    <td><b>Y</b></td>
+                    <td><b>Z</b></td>
+                    <td><b>Constraint</b></td>
+                    <td></td>
+                  </tr>
+                </thead>
+                <tbody>
+
+                  <tr id="table-row-1" class="tabler">
+                    <td>
+
+                    </td>
+                    <td>
+                      <input class="form-control zql-table name" ng-model="input.name" type="text" size="1" value=" ">
+                    </td>
+                    <td>
+                      <input class="form-control zql-table x-val" ng-model="input.x" type="text" size="12" value=" ">
+                    </td>
+                    <td>
+                      <input class="form-control zql-table y-val" ng-model="input.y" type="text" size="12" value=" ">
+                    </td>
+                    <td>
+                      <input class="form-control zql-table z-val" ng-model="input.z" type="text" size="10" value=" ">
+                    </td>
+                    <td>
+                      <input class="form-control zql-table constraints" ng-model="input.constraints" type="text" size="5" value=" ">
+                    </td>
+                    <!--
+                    <td>
+                      <input class="form-control zql-table viz" ng-model="input.viz" type="text" size="1" value=" ">
+                    </td>
+                    -->
+                    <!--
+                    <td>
+                      <input class="form-control zql-table process" ng-model="input.processe"type="text" size="36" value=" ">
+                    </td>
+                    -->
+                    <td></td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td>
+                      <a ng-click="addRow()" id="add-row"><span class="glyphicon glyphicon glyphicon-plus-sign"></span> Add row</a>
+                    </td>
+                    <td>
+                      <a ng-click="addProcessRow()" id="add-process-row"><span class="glyphicon glyphicon glyphicon-plus-sign"></span> Add process</a>
+                    </td>
+                    <td>
+                      <a ng-click="submitZQL()">Submit</a>
+                    </td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <div ng-show="!zqltable && !nlp" class="row">
+              <div class="col-md-3" >
+                <b>Similarity</b>
+                <div class="radio">
+                  <form>
+                    <input ng-model="similarity" id="Euclidean" class="active" type="radio" name="distance-method" value="Euclidean" checked ><label for="Euclidean">Euclidean Distance</label><br>
+                    <input ng-model="similarity" id="Segmentation" type="radio" name="distance-method" value="Segmentation"><label for="Segmentation">Segmentation</label><br>
+                    <input ng-model="similarity" id="DTW" type="radio" name="distance-method" value="DTW" ><label for="DTW">DTW</label><br>
+                    <input ng-model="similarity" id="MVIP" type="radio" name="distance-method" value="MVIP" ><label for="MVIP">MVIP</label>
+                  </form>
+                </div>
+                <div>
+                  <div class="info-text"><b>K-means Cluster Size</b></div>
+                  <div>
+                    <input ng-model="clusterSize" class="form-control" type="text" id="cluster-size" name="k-means-cluster-size" value="3">
+                  </div>
+                </div>
+
+                <!--<b>Representative/Outlier</b>
+                <div class="radio">
+                  <form>
+                    <input ng-model="representative" id="kmeans" class="active" type="radio" name="search-method" value="kmeans" checked ><label for="kmeans">K-means</label> <span data-toggle="modal" class="glyphicon glyphicon-question-sign"></span><br>
+                  </form>
+                </div>-->
+
+                <div>
+                  <div class="info-text"><b>Input equation</b></div>
+                  <div class="input-group">
+                    <input ng-model="equation" type="text" class="form-control">
+                    <div class="input-group-btn">
+                      <button class="btn btn-default btn-xs" ng-click="drawFunction()" type="button">add</button>
+                    </div>
+                  </div>
+                </div>
+                <div id="math-equation">
+                  <div class="info-text"><b>Custom Equation</b></div>
+                  <div>
+                  <label>  y = </label><input class="num-results" type="text" name="number-of-results" value="50">
+                  </div>
+                </div>
+
+                
+
+
+                <!--
+                <div class="info-text"><b>Number of Segments</b></div>
+                  <div>
+                    <input class="num-segments" type="text" name="number-of-segments" value="30">
+                  </div>
+                -->
+              </div>
+              <div class="col-md-3">
+                <div class="info-text"><b>Aggregation Method</b></div>
+                <div class="radio">
+                  <form>
+                    <input ng-model="aggregation" id="sum" type="radio" name="aggregation-method" value="sum"><label for="sum">Sum</label><br>
+                    <input ng-model="aggregation" id="avg" type="radio" name="aggregation-method" value="avg" checked><label for="avg">Average</label>
+                  </form>
+                </div>
+
+                <div id="num-results">
+                  <div class="info-text"><b>Number of Results</b></div>
+                  <div>
+                    <input ng-model="numResults" class="form-control" type="text" id="num-results" name="number-of-results" value="50">
+                  </div>
+                </div>
+
+                <div class="info-text"><b>Options</b></div>
+                <div class="checkbox">
+                  <form>
+                    <input ng-model="considerRange" id="considerRange" type="checkbox" name="consider-range"><label for="considerRange">Consider x-range</label><br>
+                  </form>
+                  <form>
+                    <input ng-model="showOriginalSketch" id="showOriginalSketch" type="checkbox" name="show-original-sketch"><label for="showOriginalSketch">Show original sketch</label><br>
+                  </form>
+                  <form>
+                    <input ng-model="showScatterplot" id="showScatterplot" type="checkbox" name="show-scatterplot"><label for="showScatterplot">Show scatterplot</label><br>
+                  </form>
+                </div>
+
+                <div class="checkbox" ng-controller="datasetController">
+                <form>
+                  <input ng-model="flipY" ng-change="onflipYChange()" id="flipY" type="checkbox" name="flipY"><label for="flipY">Reverse y-axis</label><br>
+                </form>
+              </div>
+
+                
+              </div>
+              <div class="col-md-3" >
+                <div class="info-text"><b>Data Smoothing</b></div>
+                  <!-- <div class="info-text"><b>Type</b></div> -->
+                  <!-- ng-change="onDatasetChange()" ng-model="selectedDataset" -->
+                  <br>
+                  <div>
+                  <select class="form-control" id="dataset-form-control">
+                    <option value="movingaverage">Moving Average</option>
+                    <option value="exponentialmovingaverage">Exponential</option>
+                    <option value="leossInterpolation">Loess</option>
+                    <option value="gaussian">Gaussian</option>
+                  </select>
+                  <p><nobr>
+                    <label for="amount">Smoothing Constant:</label>
+                    <input type="text" id="amount" readonly style="border:0; color:black; font-weight:bold;">
+                  </nobr></p>
+                  <div id="slider-range-max" align = "right" style="width:200px;"></div>
+                </div>
+                
+                
+
+              </div>
+              
+            
+            </div>
+          
+          </div>
+          <div class="col-md-12" ng-show="zqlgraph">
+            <div id="graph-div" >
+            </div>
+          </div>
+
+          
+       
+         <div ng-show="nlp" class="col-md-3" id="sdl">
+             <b>Natural Language Interface</b>
+                <div>
+                 <div class="info-text"><b>SDL Keywords</b></div>
+                  <div>
+                    <input ng-model="sdltext" class="form-control" type="text" id="sdltext" name="sdltext" value="50">
+                  </div>
+                </div>
+                
+                 <div>
+                 <div class="info-text"><b>Number of Segments</b></div>
+                  <div>
+                    <input ng-model="sdlsegments" class="form-control" type="text" id="sdlsegments" name="sdlsegments" value="3">
+                  </div>
+                </div>  
+                <hr>
+                <div> <input type="button" ng-click="submitSDL()" value="Submit"> </div>
+                  
+         </div>
+
+		 </div>
+        <!-- drawng interface + zql table END-->
+
+        <hr>
+        <div id="bottom-middle-bar">
+
+          <div id="middle-left" class="col-md-6">
+            <h5><b>Results</b></h5>
+            <div>
+              <table id="results-table"></table>
+            </div>
+          </div>
+          <div id="middle-right" class="col-md-6">
+            <div>
+              <table id="representative-table">
+                <tr class="middle-right-headers">
+                  <td><h5><b>Representative patterns </b><span data-toggle="modal" class="glyphicon glyphicon-question-sign"></span></h5>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <div>
+              <table id="outlier-table">
+                <tr class="middle-right-headers">
+                  <td><h5><b>Outliers </b><span data-toggle="modal" class="glyphicon glyphicon-question-sign"></span></h5></td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <script src="js/lib/jquery.min.js"></script>
+    <script src="js/lib/jquery-ui.min.js"></script>
+    <script src="js/lib/bootstrap.min.js"></script>
+    <script src="js/lib/bootstrap-filestyle.min.js"> </script>
+    <script src="js/lib/math.min.js"> </script>
+    <script src="js/lib/angular.min.js"></script>
+    <script src="js/lib/d3.v4.min.js"></script>
+    <script src="js/lib/d3-hexbin.v0.2.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/scatter.js"></script>
+    <script src="js/draw.js"></script>
+    <script src="js/query.js"></script>
+    <script src="js/helper.js"></script>
+
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <!-- <script src="js/graph.js"></script> -->
+    <script src="js/fileUploader.js"></script>
+    <script src="js/renderplot.js"></script>
+    <script src="js/parsertypes.js"></script>
+    <script src="js/zqlparser.js"></script>
+    <script src="js/zqlgraph.js"></script>
+    <script src="js/slider.js"></script>
+    <script src="js/colorbar.js"></script>
+    <script src="js/nlp.js"></script>
     <script>
       // var tree = tree();
       // tree.initialize();

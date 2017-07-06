@@ -482,6 +482,55 @@ app.controller('options-controller', [
 
     }
 
+    $scope.submit_NLP = function()
+    {
+      clearUserQueryResultsTable();
+      var data = constructNLPQuery(); //goes to query.js
+
+      
+      //alert(data.query)
+      
+      $http({
+          url: 'http://localhost:8000/json', 
+          method: "GET",
+          params: {'query':data.query}
+      }).then(function successCallback(response) {
+              console.log(response)
+              
+              $("#pat_tag").empty()
+              $("#pos_tag").empty()
+              $("#query").empty()
+              $("#seg_struct").empty()
+
+              $("#pat_tag").append(response.data.pattern_tags)
+              $("#pos_tag").append(response.data.pos_tag)
+              $("#query").append(response.data.query)
+              $("#seg_struct").append(JSON.stringify(response.data.seg_struct))
+
+
+           }, function errorCallback(response) {
+
+                console.log(response)
+              // called asynchronously if an error occurs
+              // or server returns response with an error status.
+            });
+
+
+
+      // $http.post('/zv/executeSDL', data)
+      //   .success(function(response) {
+      //     console.log("execute SDL: success");
+      //     if (response.length == 0){console.log("empty response")}
+      //     console.log(response);
+      //     plotResults.displayUserQueryResults(response.outputCharts,$scope.flipY,true);
+      //   })
+      //   .error(function(response) {
+      //     console.log("getUserQueryResults: fail");
+      //   });
+
+    }
+
+
     $scope.clearQuery = function() {
       $scope.removeAndInsertRows( 1 );
       $($( ".tabler" )[0]).find(".name").val("")
