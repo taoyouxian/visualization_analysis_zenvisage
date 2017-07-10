@@ -156,6 +156,21 @@ public class Data{
 		return pattern.split("\\P{L}+"); // change to , 
 	}
 	
+	public static ArrayList<String[]> parser(String shapeSegment){
+		ArrayList<String[]> result = new ArrayList<>();
+		
+		for(String z : shapeSegment.split(";")){
+			String[] tuple = new String[6];
+			int i = 0 ;
+			for(String a : z.split(",")){
+				tuple[i]  = a.replace("(","").replace(")","").replaceAll("\\s+","");
+				i++;
+			}
+			result.add(tuple);
+		}
+		return result;
+	}
+		
 	/*Converts  array of double to array of strings*/
 	public static ArrayList<String> doubleToString(double[] data){
 		ArrayList<String> dataString = new ArrayList<>();
