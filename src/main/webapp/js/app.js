@@ -506,7 +506,7 @@ app.controller('options-controller', [
               $("#pos_tag").append(response.data.pos_tag)
               $("#query").append(response.data.query)
               $("#seg_struct").append(JSON.stringify(response.data.seg_struct))
-
+              $("#sdltext").val(JSON.stringify(response.data.seg_struct))
 
            }, function errorCallback(response) {
 
