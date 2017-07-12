@@ -10,7 +10,7 @@ import edu.uiuc.zenvisage.service.ZvMain;
 public class NlpTest {
 	
 	public static void testSdl() throws IOException, InterruptedException, SQLException, ClassNotFoundException{
-		String query = "{\"x\": \"x\", \"y\": \"y\", \"z\": \"z\", \"dataset\": \"data1\", \"approach\": \"approach1\", \"sdlsegments\": \"2\" , \"sdltext\":\" (sharp,up ,1,2,3,4) ;    (sharp,,1,2,3,4)\"}";
+		String query = "{\"x\": \"x\", \"y\": \"y\", \"z\": \"z\", \"dataset\": \"data1\", \"approach\": \"approach1\", \"sdlsegments\": \"4\" , \"sdltext\":\" (,up,,,1,2);(,down,,,2,1);(,up,,,1,2);(,flat,,,2,2)\"}";
 		ZvMain zv = new ZvMain();
 		String output = zv.executeSDL(query);
 	}
@@ -22,8 +22,7 @@ public class NlpTest {
 		testSdl();
 		
 		long tEnd1 = System.currentTimeMillis();
-		System.out.println("TOTAL EXECUTION TIME : "+(tEnd1-tStart1)/1000.);	
-	
+		System.out.println("TOTAL EXECUTION TIME : "+(tEnd1-tStart1)/1000.);
 //		**********************************************************************
 //	
 //		double[][] data = new double[2][2];

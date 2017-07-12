@@ -153,7 +153,7 @@ public class Data{
 	
 	/*Returns the keywords in the pattern*/
 	public static String[] toKeywords(String pattern){
-		return pattern.split("\\P{L}+"); // change to , 
+		return (pattern.trim()).split("\\P{L}+"); // change to , 
 	}
 	
 	public static ArrayList<String[]> parser(String shapeSegment){
@@ -239,6 +239,21 @@ public class Data{
 			}
 		}
 		return result;
+	}
+	
+	public static double findRange(double[] data){
+		double max = Double.NEGATIVE_INFINITY;
+		double min = Double.POSITIVE_INFINITY;
+	
+		for(int i = 0; i < data.length; i++){
+			if(data[i] < min){
+				min = data[i];
+			}
+		    if(data[i] > max){
+		    	max = data[i];
+		    }
+		}
+		return max-min;
 	}
 	
 }

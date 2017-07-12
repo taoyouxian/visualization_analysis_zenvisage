@@ -135,7 +135,7 @@ public class Segment{
 	}
 
 	/*Applies bottomUp until max_error is reached*/
-	public static List<Segment> smoothing(int min_size , int nb_segments /*double max_error */, int pattern_length, double[][] data){
+	public static List<Segment> smoothing(int min_size , int nb_segments /*double max_error */, int query_length, double[][] data){
 		List<Segment> smooth = Segment.initialize(data,min_size);	
 		/*
 		List<Segment> smooth_test1 = Segment.initialize(data,min_size);
@@ -152,7 +152,7 @@ public class Segment{
 		//that's the error to get desired_size
 //		System.out.println("TO GET "+desired_size+ " SEGMENTS IN SMOOTH VERSION SET ERROR BIGGER THAN " +Segment.getError(smooth_test1)+" AND SMALLER THAN " +Segment.getError(smooth_test2)+ "\n"); 
 		
-		while(/*Segment.getError(smooth) < max_error && */ smooth.size() != nb_segments && smooth.size() > pattern_length){;
+		while(/*Segment.getError(smooth) < max_error && */ smooth.size() != nb_segments && smooth.size() > query_length){;
 			smooth = Segment.bottomUp(smooth,data);//error here is maximal error permitted per merge / shallow copy of smooth
 		}
 		
