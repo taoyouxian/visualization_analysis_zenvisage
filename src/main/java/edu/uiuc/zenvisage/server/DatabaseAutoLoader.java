@@ -87,12 +87,12 @@ public class DatabaseAutoLoader {
 		file = new File(zvServer.getClass().getClassLoader().getResource(("cmu_clean.txt")).getFile());
 		dataset4.add(file.getAbsolutePath());
 		
-		List<String> dataset5 = new ArrayList<String>(); //cmu
-		dataset4.add("data1");
+		List<String> dataset5 = new ArrayList<String>(); //SynData
+		dataset5.add("data1");
 		file = new File(zvServer.getClass().getClassLoader().getResource(("data1.csv")).getFile());
-		dataset4.add(file.getAbsolutePath());
+		dataset5.add(file.getAbsolutePath());
 		file = new File(zvServer.getClass().getClassLoader().getResource(("data_schema.txt")).getFile());
-		dataset4.add(file.getAbsolutePath());
+		dataset5.add(file.getAbsolutePath());
 		
 		
 

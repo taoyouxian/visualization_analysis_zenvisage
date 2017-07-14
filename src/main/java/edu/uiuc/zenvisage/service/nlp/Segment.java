@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 
+import com.google.common.collect.Lists;
+
 public class Segment{
 	
 	 int start_idx , end_idx;

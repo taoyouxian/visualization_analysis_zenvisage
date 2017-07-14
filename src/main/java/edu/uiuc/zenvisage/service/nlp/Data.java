@@ -1,11 +1,17 @@
 package edu.uiuc.zenvisage.service.nlp;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+
 
 /*data is data[n][2]*/
 public class Data{
@@ -156,18 +162,34 @@ public class Data{
 		return (pattern.trim()).split("\\P{L}+"); // change to , 
 	}
 	
-	public static ArrayList<String[]> parser(String shapeSegment){
+	public static ArrayList<String[]> parser(String shapeSegment) throws JsonParseException, JsonMappingException, IOException{
+		shapeSegment = shapeSegment.replaceAll("'", "\"");
+		
 		ArrayList<String[]> result = new ArrayList<>();
 		
-		for(String z : shapeSegment.split(";")){
-			String[] tuple = new String[6];
-			int i = 0 ;
-			for(String a : z.split(",")){
-				tuple[i]  = a.replace("(","").replace(")","").replaceAll("\\s+","");
-				i++;
-			}
+		ObjectMapper mapper = new ObjectMapper();
+		String[][] arry = mapper.readValue(shapeSegment,String[][].class);
+		
+		for (int i = 0 ; i < arry.length; i++){
+			String[] small_array = arry[i];
+			String modifier = small_array[0];
+			String pattern = small_array[1];
+			String x_start = small_array[2];
+			String x_end = small_array[3];
+			String y_start = small_array[4];
+			String y_end = small_array[5];
+			String[] tuple = {modifier,pattern,x_start,x_end,y_start,y_end};
 			result.add(tuple);
 		}
+//		for(String z : shapeSegment.split(";")){
+//			String[] tuple = new String[6];
+//			int i = 0 ;
+//			for(String a : z.split(",")){
+//				tuple[i]  = a.replace("(","").replace(")","").replaceAll("\\s+","");
+//				i++;
+//			}
+//			result.add(tuple);
+//		}
 		return result;
 	}
 		
@@ -225,6 +247,16 @@ public class Data{
         return Math.sqrt(getVariance(data));
     }
 	
+	public static double singleNormalize(double x , double data[]){
+		double mean = getMean(data);
+		double sigma = getStdDev(data);
+		
+		if(sigma == 0){
+			return 0 ;
+		}else{
+			return (x-mean)/sigma;
+		}
+	}
 	/*zNormalizes the data*/
 	public static double[] zNormalize(double data[]){
 		

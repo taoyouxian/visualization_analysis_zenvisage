@@ -1,12 +1,17 @@
 package edu.uiuc.zenvisage.service.nlp;
 
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+
 import com.google.common.collect.Lists;
 import edu.uiuc.zenvisage.model.Chart;
 import edu.uiuc.zenvisage.model.Result;
@@ -20,8 +25,9 @@ public class SdlMain {
 	/*static int max_error = 2;*/
 	/*Number of best visualizations to return */
 	static int topK = 10;  
-	static double alpha = 0.75;
+	static double alpha = 0.66;
 	
+//	static String choice = "218";
 	/*Casts boolean to int*/
 	public static int booleanToInt(boolean b){
 		return (b) ? 1 : 0;
@@ -51,7 +57,7 @@ public class SdlMain {
 
 		double x_start = location.x_start.equals("") ?  Double.MIN_VALUE : Double.parseDouble(location.x_start);
 		double x_end = location.x_end.equals("") ?  Double.MIN_VALUE   : Double.parseDouble(location.x_end);
-		double y_start = location.y_start.equals("") ?  Double.MIN_VALUE  : Double.parseDouble(location.y_start);
+		double y_start = location.y_start.equals("") ?  Double.MIN_VALUE  :Double.parseDouble(location.y_start);
 		double y_end = location.y_end.equals("") ?  Double.MIN_VALUE  : Double.parseDouble(location.y_end);
 
 		
@@ -65,14 +71,14 @@ public class SdlMain {
 //		System.out.println("real locations : "+data[segment.start_idx][1]+ " "+(data[segment.end_idx][1] - y_end));
 
 		
-		return  1 - ( (x_s * abs_x_s)/xRange
+		return  ( (x_s * abs_x_s)/xRange
 				+ (x_e * abs_x_e)/xRange 
 				+ (y_s * abs_y_s)/yRange
 				+ (y_e * abs_y_e)/yRange )/nb_elements;
 	}
 	
 	/*Takes locations and segments and returns score based on these*/
-	public static double getScoreL(List<Segment> segments , ShapeQuery shapequery , double data[][]){
+	public static double getScoreL(List<Segment> segments , ShapeQuery shapeQuery , double data[][]){
 		double score = 0 ;
 		
 		if(segments.get(0).start_idx != 0){
@@ -82,9 +88,28 @@ public class SdlMain {
 		double xRange = data[data.length-1][0]-data[0][0];
 		double yRange = Data.findRange(Data.getColumn(data,2));
 		
+//		double[] shapeQuery_x = new double[shapeQuery.shapeSegment.size()*2];
+//		double[] shapeQuery_y = new double[shapeQuery.shapeSegment.size()*2];
+		
+//		for(int i = 0 ; i < shapeQuery.shapeSegment.size() ; i++){
+//			double x_start = shapeQuery.shapeSegment.get(i).x_start.equals("") ?  0 : Double.parseDouble(shapeQuery.shapeSegment.get(i).x_start);
+//			double x_end = shapeQuery.shapeSegment.get(i).x_end.equals("") ?  0   : Double.parseDouble(shapeQuery.shapeSegment.get(i).x_end);
+//			double y_start = shapeQuery.shapeSegment.get(i).y_start.equals("") ?  0  : Double.parseDouble(shapeQuery.shapeSegment.get(i).y_start);
+//			double y_end = shapeQuery.shapeSegment.get(i).y_end.equals("") ?  0  : Double.parseDouble(shapeQuery.shapeSegment.get(i).y_end);
+//			
+//			shapeQuery_x[i] = x_start;
+//			shapeQuery_x[i+1] = x_end ;
+//			
+//			shapeQuery_y[i] = y_start;
+//			shapeQuery_y[i+1] = y_end ;
+//		}
+
+		int overall_length = segments.get(segments.size()-1).end_idx - segments.get(0).start_idx;
+		
 //		System.out.println("xRange is : "+xRange);
-		System.out.println("yRange is : "+yRange);
+//		System.out.println("yRange is : "+yRange);
 		for(int i = 0 ; i < segments.size() ; i++){
+			int segment_length = segments.get(i).end_idx-segments.get(i).start_idx;
 //			System.out.println(shapequery.shapeSegment.get(i).x_start);
 //			System.out.println(shapequery.shapeSegment.get(i).x_end);
 //			System.out.println(shapequery.shapeSegment.get(i).y_start);
@@ -92,21 +117,24 @@ public class SdlMain {
 //			System.out.println("----------------");
 //			System.out.println("score L dakhel " + getSingleScoreL(segments.get(i), shapequery.shapeSegment.get(i), xRange, yRange, data));
 			
-			score += getSingleScoreL(segments.get(i), shapequery.shapeSegment.get(i), xRange, yRange, data)/segments.size();
+			score += getSingleScoreL(segments.get(i), shapeQuery.shapeSegment.get(i), xRange, yRange, data)*(segment_length)/overall_length;
 			
 //			System.out.println("x start "+segments.get(i).start_idx+ " and x start query "+shapequery.shapeSegment.get(i).x_start);
 //			System.out.println("x end "+segments.get(i).end_idx+ " and x end query "+shapequery.shapeSegment.get(i).x_end);
 //			System.out.println("score know is : "+score);
 //			System.out.println("//////////////////////");
+//			for(double d : Data.getColumn(data, 2)){
+//				System.out.print(d + " ");
+//			}
 			
-			System.out.println("y start "+data[segments.get(i).start_idx][1]+" and y end "+data[segments.get(i).end_idx][1]);
-			System.out.println("y start query "+shapequery.shapeSegment.get(i).y_start+" and y end query "+shapequery.shapeSegment.get(i).y_end);
-			System.out.println("score know is : "+score);
-			System.out.println("//////////////////////");
+//			System.out.println("y start "+data[segments.get(i).start_idx][1]+" and y end "+data[segments.get(i).end_idx][1]);
+//			System.out.println("y start query "+shapeQuery.shapeSegment.get(i).y_start+" and y end query "+shapeQuery.shapeSegment.get(i).y_end);
+//			System.out.println("score now is : "+score);
+//			System.out.println("//////////////////////");
 		}
-		
-		System.out.println("score L is :" +score);
-		System.out.println("------------------");
+//		
+//		System.out.println("score L is :" +score);
+//		System.out.println("------------------");
 		return score;
 	}
 	
@@ -149,6 +177,7 @@ public class SdlMain {
 			
 			int segment_length = s1.get(i).end_idx-s1.get(i).start_idx;
 			//TODO : Leave this check?
+//			System.out.println("pattern is : " +pattern[j] + " and slope is : " +s1.get(i).slope);
 //			if(i < pattern.length){
 				switch(pattern[j]){
 				case "up" : score += ((Math.atan(s1.get(i).slope)/(Math.PI/2))*segment_length)/(overall_length*pattern.length);
@@ -158,6 +187,7 @@ public class SdlMain {
 				case "down" : score -= ((Math.atan(s1.get(i).slope)/(Math.PI/2))*segment_length)/(overall_length*pattern.length);
 							  break;		
 				}	
+//				System.out.println("score now is : "+ score);
 				j++;
 			}
 //		}
@@ -181,30 +211,40 @@ public class SdlMain {
 //		
 //		System.out.println();
 //
-		System.out.println("score K is : " +score);
+//		System.out.println("score K is : " +score);
 		return score;
 	}
 	
 	/*Takes a pattern and a list of segments and returns a score badsed on these */
-	public static double getScoreK2(List<Segment> segments , String[] pattern , Tuple[] tuples){
+	public static double getScoreK2(List<Segment> segments , String[] pattern , Tuple[] tuples , ShapeQuery shapeQuery){
 		double score = 0;
+		
 		double[] scores = new double[pattern.length] ;
 		
 		if(segments.get(0).start_idx != 0){
 			segments = Lists.reverse(segments);
 		}
 		
-		int tuples_size = tuples.length;
+		if(tuples[0].start_idx != 0){
+			Collections.reverse(Arrays.asList(tuples));
+		}
+
 		
 		int overall_length = segments.get(segments.size()-1).end_idx-segments.get(0).start_idx;
 		
 		int j = 0 ;
-		
+
 		for(int i = 0 ; i < segments.size() ; i++){
+			if(shapeQuery.shapeSegment.get(i).keyword.equals("")){
+//				System.out.println("continue");
+				continue;
+			}
+			
 			int segment_length = segments.get(i).end_idx-segments.get(i).start_idx;
 			
 			//TODO : Leave this check?
 //			if(i < pattern.length){
+//			System.out.println("pattern is : "+pattern[j] + " and slope is " +segments.get(i).slope);
 				switch(pattern[j]){
 				case "up" : scores[j] += ((Math.atan(segments.get(i).slope)/(Math.PI/2))*segment_length)/(overall_length);
 							break;
@@ -214,39 +254,43 @@ public class SdlMain {
 							break;		
 				}
 //			}
+//				System.out.println("score now is : " +scores[j]);
 //			System.out.println(s1.get(i).end_idx+" and " +tuples[j].end_idx);
 //			System.out.println("before " +j);
-			if(segments.get(i).end_idx == tuples[tuples_size-j-1].end_idx){
+			if(segments.get(i).end_idx == tuples[j].end_idx){
 				j++;
 			}
+			
+			
 		}
 		
 		for(int k = 0 ; k < scores.length ; k++){
 			score += scores[k]/pattern.length;
 		}
-		
+//		System.out.println("------------------");
+//		System.out.println("score K is :" +score);
 		return score;
 	}
 	/* TODO : ADD GET PATTERN LENGTH AND SEG OVERALL LENGTH*/
 	
 	/*Takes pattern,locations,segments,constant alpha and returns overall score */
-	public static double getOverallScore1(List<Segment> segments , ShapeQuery shapequery , String[] pattern , double alpha , double data[][]){
+	public static double getOverallScore1(List<Segment> segments , ShapeQuery shapequery , String[] pattern , double alpha , double normalized_data[][] , double raw_data[][]){
 		/*TODO : QUICK FIX */
 		if(segments.get(0).start_idx != 0){
 			segments = Lists.reverse(segments);
 		}
 		
-		return alpha*getScoreK1(segments,pattern,shapequery)+(1-alpha)*getScoreL(segments,shapequery,data);
+		return alpha*getScoreK1(segments,pattern,shapequery)+(1-alpha)*(1-getScoreL(segments,shapequery,raw_data));
 	}
 	
 	/*Takes pattern,locations,segments,constant alpha and returns overall score */
-	public static double getOverallScore2(List<Segment> segments , ShapeQuery shapequery , String[] pattern , Tuple[] tuples , double alpha , double data[][]){
+	public static double getOverallScore2(List<Segment> segments , ShapeQuery shapequery , String[] pattern , Tuple[] tuples , double alpha ,double raw_data[][]){
 		
 		if(segments.get(0).start_idx != 0){
 			segments = Lists.reverse(segments);
 		}
 		
-		return alpha*getScoreK2(segments,pattern,tuples)+(1-alpha)*getScoreL(segments,shapequery,data);
+		return alpha*getScoreK2(segments,pattern,tuples, shapequery)+(1-alpha)*(1-getScoreL(segments,shapequery,raw_data));
 	}
 	
 	/*Takes a list of segments and gives all possible partitions */
@@ -334,9 +378,9 @@ public class SdlMain {
 	}
 	
 	/*Returns the partition that maximizes the score*/
-	public static List<Segment> getBestPartition1(int min_size , int nb_segments/*double max_error */, String[] pattern , ShapeQuery shapeQuery , double[][] data){
+	public static List<Segment> getBestPartition1(int min_size , int nb_segments/*double max_error */, String[] pattern , ShapeQuery shapeQuery , double[][] normalized_data, double[][] raw_data){
 		/*Smooth our segments then give all partitions possible*/
-		List<List<Segment>> result = SdlMain.partition1(Segment.smoothing(min_size,nb_segments,shapeQuery.shapeSegment.size(),data),shapeQuery.shapeSegment.size(), data);
+		List<List<Segment>> result = SdlMain.partition1(Segment.smoothing(min_size,nb_segments,shapeQuery.shapeSegment.size(),normalized_data),shapeQuery.shapeSegment.size(), normalized_data);
 //		System.out.println("***** RESULT OF PARTITION *****");
 //		for(List<Segment>  s : result){
 //			System.out.println("********************************************");
@@ -349,7 +393,7 @@ public class SdlMain {
 //			System.out.println("//////////////////////////////////////////");
 //			List<Segment> reversed = Lists.reverse(segments);
 //			Segment.printListSegments(segments);
-			scores.add(SdlMain.getOverallScore1(segments, shapeQuery, pattern, alpha, data));
+			scores.add(SdlMain.getOverallScore1(segments, shapeQuery, pattern, alpha, normalized_data,raw_data));
 //			System.out.println("SCORE OF LIST IS  "+ Query.getScore(reversed,pattern));
 //			System.out.println("//////////////////////////////////////////\n");
 
@@ -373,13 +417,16 @@ public class SdlMain {
 //		Segment.printListSegments(Lists.reverse(result.get(max_idx)));
 	}
 
+	
 	/*Returns the partition that maximizes the score*/
-	public static Tuple[] getBestPartition2(int min_size , int nb_segments/*double max_error */, String[] pattern , ShapeQuery shapeQuery , double[][] data){
+	public static Tuple[] getBestPartition2(int min_size , int nb_segments/*double max_error */, String[] pattern , ShapeQuery shapeQuery , double[][] normalized_data , double [][] raw_data){
 		/*Smooth our segments then give all partitions possible*/
-		List<Segment> segments = Segment.smoothing(min_size,nb_segments,shapeQuery.shapeSegment.size(),data);
-		SdlMain.partition2(segments,pattern.length, data); 
+		List<Segment> segments = Segment.smoothing(min_size,nb_segments,shapeQuery.shapeSegment.size(),normalized_data);
+		SdlMain.partition2(segments,pattern.length, normalized_data); 
 		List<Double> scores = new ArrayList<>();
+		
 //		Segment.printListSegments(segments);
+		
 		/*Score and rank*/
 		for(Tuple[] tuples  : allPartitions){
 //			System.out.println("new tuple : ");
@@ -388,7 +435,7 @@ public class SdlMain {
 //				System.out.println("Tuple : ("+a.start_idx+","+a.end_idx+")");
 //			}
 //			System.out.println("score of this tuple ^ is : " +SdlMain.getScore(segments,pattern,tuples));
-			scores.add(SdlMain.getOverallScore2(segments, shapeQuery, pattern,tuples,alpha,data));
+			scores.add(SdlMain.getOverallScore2(segments , shapeQuery, pattern ,tuples , alpha , raw_data));
 //			System.out.println("SCORE OF LIST IS  "+ SdlMain.getScore(reversed,pattern));
 //			System.out.println("//////////////////////////////////////////\n");
 		}
@@ -414,7 +461,7 @@ public class SdlMain {
 	}
 	
 	/*Prints top K best visualizations */
-	public static Result executeSdlQuery(Sdlquery sdlquery) throws ClassNotFoundException, SQLException{
+	public static Result executeSdlQuery(Sdlquery sdlquery) throws ClassNotFoundException, SQLException, JsonParseException, JsonMappingException, IOException{
 		String X = sdlquery.x;
 		String Y = sdlquery.y; 
 		String Z = sdlquery.z;
@@ -448,14 +495,16 @@ public class SdlMain {
 			data1.add(result);
 		}
 		
-		/*
-		Z-Normalize data(Y values)
+	
+		
+		/*Z-Normalize data(Y values)*/
 		for(double[][] single_data : data){
+			double[] normalized = Data.zNormalize(Data.getColumn(single_data,2));
 			for(int i = 0 ; i < single_data.length ; i++){
-				 single_data[i][1] = Data.zNormalize(Data.getColumn(single_data,2))[i]; 
+				 single_data[i][1] = normalized[i]; 
 			}
 		}
-		*/
+		
 		
 		long tEnd2 = System.currentTimeMillis();
 		System.out.println("Elapsed time to fetch all data "+(tEnd2-tStart2));
@@ -522,7 +571,7 @@ public class SdlMain {
 			for(int i = 0 ; i < data.size() ; i++){
 				/*Test if we can have at least one segment*/
 				if(data.get(i).length > 1){
-						bestOfEachZ.add(new SegmentsAndZ(SdlMain.getBestPartition1(min_size, nb_segments, pattern , shapeQuery , data.get(i)), zs.get(i), data.get(i)));
+						bestOfEachZ.add(new SegmentsAndZ(SdlMain.getBestPartition1(min_size, nb_segments, pattern , shapeQuery , data.get(i) , data1.get(i)), zs.get(i), data.get(i)));
 					}
 					//bestOfEachZ.add(new SegmentsAndZ(Segment.initialize(data.get(i), 2), zs.get(i), data.get(i)));
 				}
@@ -531,7 +580,7 @@ public class SdlMain {
 			for(int i = 0 ; i < data.size() ; i++){
 				/*Test if we can have at least one segment*/
 				if(data.get(i).length > 1){
-					bestOfEachZ.add(new SegmentsAndZ(Segment.smoothing(min_size,nb_segments,pattern.length,data.get(i)),SdlMain.getBestPartition2(min_size, nb_segments, pattern , shapeQuery , data.get(i)), zs.get(i), data.get(i)));
+					bestOfEachZ.add(new SegmentsAndZ(Segment.smoothing(min_size,nb_segments,pattern.length,data.get(i)),SdlMain.getBestPartition2(min_size, nb_segments, pattern , shapeQuery , data.get(i) , data1.get(i)), zs.get(i), data.get(i)));
 					}
 					//bestOfEachZ.add(new SegmentsAndZ(Segment.initialize(data.get(i), 2), zs.get(i), data.get(i)));
 				}
@@ -551,9 +600,9 @@ public class SdlMain {
 			/*Sort list of segments depending on score*/
 			Collections.sort(bestOfEachZ, new Comparator<SegmentsAndZ>() {
 		        @Override public int compare(SegmentsAndZ s1, SegmentsAndZ s2) {
-		        	if(SdlMain.getOverallScore1(s1.segments, shapeQuery, pattern,alpha,s1.data) <  SdlMain.getOverallScore1(s2.segments, shapeQuery, pattern,alpha,s2.data)){
+		        	if(SdlMain.getOverallScore1(s1.segments, shapeQuery, pattern,alpha,s1.data , data1.get(zs.indexOf(s1.z))) <  SdlMain.getOverallScore1(s2.segments, shapeQuery, pattern,alpha,s2.data,data1.get(zs.indexOf(s2.z)))){
 		        		return 1;
-		        	}else if(SdlMain.getOverallScore1(s1.segments, shapeQuery, pattern,alpha,s1.data) >  SdlMain.getOverallScore1(s2.segments, shapeQuery, pattern,alpha,s2.data)){
+		        	}else if(SdlMain.getOverallScore1(s1.segments, shapeQuery, pattern,alpha,s1.data,data1.get(zs.indexOf(s1.z))) >  SdlMain.getOverallScore1(s2.segments, shapeQuery, pattern,alpha,s2.data,data1.get(zs.indexOf(s2.z)))){
 		        		return -1;
 		        	}else{
 		        		return 0;
@@ -565,9 +614,9 @@ public class SdlMain {
 			/*Sort list of segments depending on score*/
 			Collections.sort(bestOfEachZ, new Comparator<SegmentsAndZ>() {
 		        @Override public int compare(SegmentsAndZ s1, SegmentsAndZ s2) {
-		        	if(SdlMain.getOverallScore2(s1.segments, shapeQuery, pattern,s1.tuples,alpha,s1.data) <  SdlMain.getOverallScore2(s2.segments, shapeQuery, pattern,s2.tuples,alpha,s2.data)){
+		        	if(SdlMain.getOverallScore2(s1.segments, shapeQuery, pattern,s1.tuples,alpha, data1.get(zs.indexOf(s1.z))) <  SdlMain.getOverallScore2(s2.segments, shapeQuery, pattern,s2.tuples,alpha, data1.get(zs.indexOf(s2.z)))){
 		        		return 1;
-		        	}else if(SdlMain.getOverallScore2(s1.segments, shapeQuery, pattern,s1.tuples,alpha,s1.data) >  SdlMain.getOverallScore2(s2.segments, shapeQuery, pattern,s2.tuples,alpha,s2.data)){
+		        	}else if(SdlMain.getOverallScore2(s1.segments, shapeQuery, pattern,s1.tuples,alpha, data1.get(zs.indexOf(s1.z))) >  SdlMain.getOverallScore2(s2.segments, shapeQuery, pattern,s2.tuples,alpha, data1.get(zs.indexOf(s2.z)))){
 		        		return -1;
 		        	}else{
 		        		return 0;
@@ -588,15 +637,25 @@ public class SdlMain {
 		
 		
 //		 for(int i = 0 ; i < bestOfEachZ.size(); i++){
-//			 if(bestOfEachZ.get(i).z.equals("70")){
+//			 if(bestOfEachZ.get(i).z.equals(choice)){
 //				 System.out.println("z : "+bestOfEachZ.get(i).z);
 //				 System.out.println("it's : "+i);
+//				 System.out.println("z is : "+bestOfEachZ.get(i).z);
+//					System.out.println("score is  : "+SdlMain.getOverallScore1(bestOfEachZ.get(i).segments, shapeQuery, pattern,alpha,bestOfEachZ.get(i).data,data1.get(zs.indexOf(bestOfEachZ.get(i).z))));
+//					Segment.printListSegments(bestOfEachZ.get(i).segments);
+//					System.out.println("////////////////");
 //			 }
+////			 if(bestOfEachZ.get(i).z.equals("242")){
+////				 System.out.println("z : "+bestOfEachZ.get(i).z);
+////				 System.out.println("it's : "+i);
+////			 }
 //		 }
-		 
-//		System.out.println("z is : "+bestOfEachZ.get(41).z);
-//		System.out.println("score is  : "+SdlMain.getOverallScore1(bestOfEachZ.get(41).segments, shapeQuery, pattern,alpha,bestOfEachZ.get(41).data));
-//		Segment.printListSegments(bestOfEachZ.get(41).segments);
+//		 
+		
+//		
+//		System.out.println("z is : "+bestOfEachZ.get(6).z);
+//		System.out.println("score is  : "+SdlMain.getOverallScore1(bestOfEachZ.get(6).segments, shapeQuery, pattern,alpha,bestOfEachZ.get(6).data));
+//		Segment.printListSegments(bestOfEachZ.get(6).segments);
 //		System.out.println("////////////////");
 		
 		/*Returns the top k visualizations*/
@@ -605,7 +664,7 @@ public class SdlMain {
 			for(int i = 0 ; i < top_K  ; i++){
 				//System.out.println("Place number "+ (i+1) + " with score : "+SdlMain.getScore(bestOfEachZ.get(i).segments, pattern));
 				System.out.println("z is : "+bestOfEachZ.get(i).z);
-				System.out.println("score is  : "+SdlMain.getOverallScore1(bestOfEachZ.get(i).segments, shapeQuery, pattern,alpha,bestOfEachZ.get(i).data));
+				System.out.println("score is  : "+SdlMain.getOverallScore1(bestOfEachZ.get(i).segments, shapeQuery, pattern,alpha,bestOfEachZ.get(i).data,data1.get(zs.indexOf(bestOfEachZ.get(i).z))));
 				Segment.printListSegments(Lists.reverse(bestOfEachZ.get(i).segments));
 				System.out.println("////////////////");
 			}
@@ -618,14 +677,18 @@ public class SdlMain {
 			for(int i = 0 ; i < top_K  ; i++){
 				//System.out.println("Place number "+ (i+1) + " with score : "+SdlMain.getScore(bestOfEachZ.get(i).segments, pattern));
 				System.out.println("z is : "+bestOfEachZ.get(i).z);
-				System.out.println("score is  : "+SdlMain.getOverallScore2(bestOfEachZ.get(i).segments, shapeQuery, pattern,bestOfEachZ.get(i).tuples,alpha,bestOfEachZ.get(i).data));
+				System.out.println("score is  : "+SdlMain.getOverallScore2(bestOfEachZ.get(i).segments, shapeQuery, pattern,bestOfEachZ.get(i).tuples,alpha,data1.get(zs.indexOf(bestOfEachZ.get(i).z))));
 				Segment.printListSegments(bestOfEachZ.get(i).segments);
 				System.out.println("////////////////");
 			}
+			
+			
+			
 			for(int i = 0 ; i < top_K  ; i++){
 				//System.out.println("Place number "+ (i+1) + " with score : "+SdlMain.getScore(bestOfEachZ.get(i).segments, pattern));
 				System.out.println("z is : "+bestOfEachZ.get(i).z);
 			}
+			
 		}
 
 		
@@ -639,13 +702,14 @@ public class SdlMain {
 		long tEnd7 = System.currentTimeMillis();
 		System.out.println("Elapsed time to get sublist "+(tEnd7-tStart7));
 		
+		
 		return convertOutputtoVisualization(result,data,zs,sdlquery,top_K);
 	}
 	
 	/*Converts the top K List<Segment> to Result format*/
 	 public static Result convertOutputtoVisualization(List<SegmentsAndZ> top_k_results , ArrayList<double[][]> data ,ArrayList<String> zs , Sdlquery sdlquery , int topK) throws SQLException, ClassNotFoundException{
 		long tStart7 = System.currentTimeMillis();
-		Data queryExecutor = new Data();
+//		Data queryExecutor = new Data();
 		Result result = new Result();
 		
 		for(int i = 0 ; i < topK ; i++){

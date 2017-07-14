@@ -2,20 +2,27 @@ package edu.uiuc.zenvisage.service.nlp;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+
+
+
 
 import edu.uiuc.zenvisage.service.ZvMain;
 
 public class NlpTest {
 	
 	public static void testSdl() throws IOException, InterruptedException, SQLException, ClassNotFoundException{
-		String query = "{\"x\": \"x\", \"y\": \"y\", \"z\": \"z\", \"dataset\": \"data1\", \"approach\": \"approach1\", \"sdlsegments\": \"4\" , \"sdltext\":\" (,up,,,1,2);(,down,,,2,1);(,up,,,1,2);(,flat,,,2,2)\"}";
+		String query = "{\"x\": \"x\", \"y\": \"y\", \"z\": \"z\", \"dataset\": \"data1\", \"approach\": \"approach1\", \"sdlsegments\": \"3\" , \"sdltext\":\"  [['', 'up', '', '', '', ''], ['', '', '', '', '1', '1'], ['', '', '', '', '1', '3']]\"}";
 		ZvMain zv = new ZvMain();
-		String output = zv.executeSDL(query);
+		zv.executeSDL(query);
 	}
 	
 	public static void main(String[] args) throws ClassNotFoundException, IOException, InterruptedException, SQLException {
+//		String jsonstr = "[['', 'up', '5', '10', '', ''], ['', 'down', '15', '20', '', '']]";
+//		for(String[] tab : Data.parser(jsonstr)){
+//			for(String s : tab){
+//				System.out.println(s);
+//			}
+//		}
 		
 		long tStart1 = System.currentTimeMillis();		
 		
@@ -23,7 +30,31 @@ public class NlpTest {
 		
 		long tEnd1 = System.currentTimeMillis();
 		System.out.println("TOTAL EXECUTION TIME : "+(tEnd1-tStart1)/1000.);
+
+		/* [['', 'up', '', '', '1', '3'], ['', 'down', '', '', '3', '1']*/
 //		**********************************************************************
+		
+//		String jsonstr = "[['', 'up', '5', '10', '', ''], ['', 'down', '15', '20', '', '']]";
+//		JSONArray arry = new JSONArray(jsonstr);
+//		
+//		for (int i = 0 ; i < arry.length(); i++){
+//			JSONArray small_array = arry.getJSONArray(i);
+//			String modifier = small_array.getString(0);
+//			String pattern = small_array.getString(1);
+//			String x_start = small_array.getString(2);
+//			String x_end = small_array.getString(3);
+//			String y_start = small_array.getString(4);
+//			String y_end = small_array.getString(5);
+//			System.out.println("Segment: No."+i+"\n");
+//			System.out.println("M: "+modifier);
+//			System.out.println("P: "+pattern);
+//			System.out.println("x_start: "+x_start);
+//			System.out.println("x_end: "+x_end);
+//			System.out.println("y_start: "+y_start);
+//			System.out.println("y_end: "+y_end+"\n");
+//		}
+//		**********************************************************************
+	
 //	
 //		double[][] data = new double[2][2];
 //		Segment s1 = new Segment(0, 5, data);
