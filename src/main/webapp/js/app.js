@@ -507,7 +507,9 @@ app.controller('options-controller', [
               $("#query").append(response.data.query)
               $("#seg_struct").append(JSON.stringify(response.data.seg_struct))
               $("#sdltext").val(JSON.stringify(response.data.seg_struct))
-
+              $("#approach").val("approach1")
+              $("#sdlsegments").val(response.data.seg_struct.length)
+              $scope.submitSDL()
            }, function errorCallback(response) {
 
                 console.log(response)
@@ -515,7 +517,7 @@ app.controller('options-controller', [
               // or server returns response with an error status.
             });
 
-
+      	
 
       // $http.post('/zv/executeSDL', data)
       //   .success(function(response) {
@@ -527,7 +529,6 @@ app.controller('options-controller', [
       //   .error(function(response) {
       //     console.log("getUserQueryResults: fail");
       //   });
-
     }
 
 

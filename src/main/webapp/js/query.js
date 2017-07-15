@@ -168,12 +168,14 @@ function nlp_query()
 
 function getSdlText()
 {
-	 return angular.element($("#sdl")).scope().sdltext;
+
+  return $("#sdltext").val();
+
 }
 
 function getSdlNumSegments()
 {
- return angular.element($("#sdl")).scope().sdlsegments;
+ return $("#sdlsegments").val();
 }
 
 function getNLPQueryText()
@@ -184,6 +186,6 @@ function getNLPQueryText()
 
 function getSdlApproach()
 {
- return angular.element($("#sdl")).scope().approach; 
+  return $("#approach").val(); 
 }
 
