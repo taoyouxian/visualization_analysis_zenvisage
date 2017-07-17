@@ -175,8 +175,8 @@ public class Data{
 			String modifier = small_array[0];
 			String pattern = small_array[1];
 			String x_start = small_array[2];
-			String x_end = small_array[3];
-			String y_start = small_array[4];
+			String x_end = small_array[4];
+			String y_start = small_array[3];
 			String y_end = small_array[5];
 			String[] tuple = {modifier,pattern,x_start,x_end,y_start,y_end};
 			result.add(tuple);

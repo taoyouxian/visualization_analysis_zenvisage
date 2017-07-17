@@ -37,3 +37,14 @@ $('#nlp_query_text').autocomplete({
     delay: 100
 });
   } );
+
+
+function second_submit_nlp(string) {
+
+  $("#nlp_query_text").val(string);
+  var scope = angular.element(document.getElementById('top-middle-bar')).scope(); 
+  scope.submit_NLP();
+  return false;
+
+
+}

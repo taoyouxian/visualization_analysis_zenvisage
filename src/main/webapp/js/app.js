@@ -501,6 +501,7 @@ app.controller('options-controller', [
               $("#pos_tag").empty()
               $("#query").empty()
               $("#seg_struct").empty()
+              $("#suggest_query").empty()
 
               $("#pat_tag").append(response.data.pattern_tags)
               $("#pos_tag").append(response.data.pos_tag)
@@ -509,15 +510,26 @@ app.controller('options-controller', [
               $("#sdltext").val(JSON.stringify(response.data.seg_struct))
               $("#approach").val("approach1")
               $("#sdlsegments").val(response.data.seg_struct.length)
+
+
+              if (response.data.guess_flag) {
+                text1 = '<h4 > Show results for <a href="#" onclick="second_submit_nlp(\''+response.data.search_for+'\');">'+response.data.search_for+' </a> </h4>' 
+                text2 = '<h5 > Instead search for <a href="#" onclick="second_submit_nlp(\''+response.data.alternative_search+'\');">'+response.data.alternative_search+' </a> </h5>' 
+                
+                $("#suggest_query").append(text1)
+                $("#suggest_query").append(text2)
+              }     
+
+
+
+
               $scope.submitSDL()
            }, function errorCallback(response) {
 
                 console.log(response)
               // called asynchronously if an error occurs
               // or server returns response with an error status.
-            });
-
-      	
+            });  	
 
       // $http.post('/zv/executeSDL', data)
       //   .success(function(response) {
@@ -530,6 +542,13 @@ app.controller('options-controller', [
       //     console.log("getUserQueryResults: fail");
       //   });
     }
+
+    $scope.second_submit_nlp = function (string) {
+        alert('hi')
+        $("#nlp_query_text").val(string);
+        $scope.submit_NLP();
+        
+      }    
 
 
     $scope.clearQuery = function() {
