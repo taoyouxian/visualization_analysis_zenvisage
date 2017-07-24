@@ -30,13 +30,9 @@ public class Segment{
 	/*Creates a list of segments from a list of tuples*/
 	public static List<Segment> createListSegment(Tuple[] tuples , double[][] data){
 		List<Segment> result = new ArrayList<>();
-		int i = 0;
-		
 		for(Tuple tuple : tuples){
-			result.add(i,createSegment(tuple, data));
-			i++;
+			result.add(createSegment(tuple, data));
 		}
-		
 		return result;
 	}
 	
@@ -75,10 +71,10 @@ public class Segment{
 //		for(int i = 0 ; i < data.length - min_size ; i++){
 //				segments.add(new Segment(i,i+min_size-1,data));
 //		}
-		if(!(data.length > 2)){
-			segments.add(new Segment(0,1,data));
-			return segments;
-		}
+//		if(!(data.length > 2)){
+//			segments.add(new Segment(0,1,data));
+//			return segments;
+//		}
 		for(int i = 0 ; i < data.length  ; i+= min_size-1){
 			if(i+min_size >= data.length){
 				segments.add(new Segment(i,data.length-1,data));
@@ -138,7 +134,10 @@ public class Segment{
 
 	/*Applies bottomUp until a number of segments is reached*/
 	public static List<Segment> smoothing1(int min_size , int nb_segments , int query_length, double[][] data){
+		/*smooth size is data.length - 1 */ 
 		List<Segment> smooth = Segment.initialize(data,min_size);	
+		
+		/*smooth size is max(nb_segments,query_length)*/
 		while(smooth.size() != nb_segments && smooth.size() > query_length){;
 			smooth = Segment.bottomUp(smooth,data);
 		}
@@ -156,30 +155,5 @@ public class Segment{
 		}
 		return smooth;
 	}
-	
-//	public static List<Segment> smoothing2(int min_size , int nb_segments /*double max_error */, double[][] data){
-//		List<Segment> smooth = Segment.initialize(data,min_size);	
-//		/*
-//		List<Segment> smooth_test1 = Segment.initialize(data,min_size);
-//		List<Segment> smooth_test2 = Segment.initialize(data,min_size);
-//		
-//		while(smooth_test1.size() != nb_segments + 1){
-//			smooth_test1 = Segment.bottomUp(smooth_test1,data);
-//		}
-//		
-//		while(smooth_test2.size() != nb_segments){
-//			smooth_test2 = Segment.bottomUp(smooth_test2,data);
-//		}
-//		*/
-//		//that's the error to get desired_size
-////		System.out.println("TO GET "+desired_size+ " SEGMENTS IN SMOOTH VERSION SET ERROR BIGGER THAN " +Segment.getError(smooth_test1)+" AND SMALLER THAN " +Segment.getError(smooth_test2)+ "\n"); 
-//		
-//		while(/*Segment.getError(smooth) < max_error && */ smooth.size() != nb_segments && smooth.size() > 1){;
-//			smooth = Segment.bottomUp(smooth,data);//error here is maximal error permitted per merge / shallow copy of smooth
-//		}
-//		
-////		System.out.println("NUMBER OF SEGMENTS OF SMOOTH VERSION IS : "+smooth.size()+"\n");
-//		return smooth;
-//	}
 	
 }

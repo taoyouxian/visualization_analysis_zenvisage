@@ -1,5 +1,6 @@
 package edu.uiuc.zenvisage.service.nlp;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Tuple {
@@ -33,6 +34,14 @@ public class Tuple {
 			result[i] = new Tuple(indexes.get(i),indexes.get(i+1));
 		}
 		return result;
+	}	
+	
+	public static ArrayList<Tuple> clone(ArrayList<Tuple> original){
+		ArrayList<Tuple> copy = new ArrayList<>();
+		for(Tuple tuple : original){
+			copy.add(new Tuple(tuple.start_idx,tuple.end_idx));
+		}
+		return copy;
 	}
 }
 		
