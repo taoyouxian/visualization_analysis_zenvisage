@@ -24,7 +24,7 @@ public class Data{
 	/*Stores list of Z values*/
 	public static ArrayList<String> allZs = new ArrayList<>();
 
-	// Initialize connection
+	/*Initialize connection*/
 	public Data() {
 	      try {
 		         Class.forName("org.postgresql.Driver");
@@ -137,7 +137,6 @@ public class Data{
 	/*Gives a slice of the data*/
 	public static double[][] getPart(int start_idx , int end_idx , double[][] data){
 		 double[][] result = new double[end_idx - start_idx + 1][2];
-		 
 		 for(int i = start_idx ; i < end_idx + 1 ; i++ ){
 			 result[i-start_idx][0] = data[i][0];
 			 result[i-start_idx][1] = data[i][1];
@@ -168,10 +167,10 @@ public class Data{
 		ArrayList<String[]> result = new ArrayList<>();
 		
 		ObjectMapper mapper = new ObjectMapper();
-		String[][] arry = mapper.readValue(shapeSegment,String[][].class);
+		String[][] big_array = mapper.readValue(shapeSegment,String[][].class);
 		
-		for (int i = 0 ; i < arry.length; i++){
-			String[] small_array = arry[i];
+		for (int i = 0 ; i < big_array.length; i++){
+			String[] small_array = big_array[i];
 			String modifier = small_array[0];
 			String pattern = small_array[1];
 			String x_start = small_array[2];
@@ -181,15 +180,7 @@ public class Data{
 			String[] tuple = {modifier,pattern,x_start,x_end,y_start,y_end};
 			result.add(tuple);
 		}
-//		for(String z : shapeSegment.split(";")){
-//			String[] tuple = new String[6];
-//			int i = 0 ;
-//			for(String a : z.split(",")){
-//				tuple[i]  = a.replace("(","").replace(")","").replaceAll("\\s+","");
-//				i++;
-//			}
-//			result.add(tuple);
-//		}
+		
 		return result;
 	}
 		
@@ -202,7 +193,7 @@ public class Data{
 		return dataString;
 	}
 	
-	/*Returns column: index_column of data*/
+	/*Returns column "index_column" of data*/
 	public static double[] getColumn(double[][] data , int index_column){
 		double[] column = new double[data.length];
 		for(int i = 0 ; i < data.length ; i++){
@@ -247,6 +238,7 @@ public class Data{
         return Math.sqrt(getVariance(data));
     }
 	
+	/*Normalize a single point*/
 	public static double singleNormalize(double x , double data[]){
 		double mean = getMean(data);
 		double sigma = getStdDev(data);
@@ -257,6 +249,7 @@ public class Data{
 			return (x-mean)/sigma;
 		}
 	}
+	
 	/*zNormalizes the data*/
 	public static double[] zNormalize(double data[]){
 		
@@ -273,6 +266,7 @@ public class Data{
 		return result;
 	}
 	
+	/*Computes the range of some data (max value - min value)*/
 	public static double findRange(double[] data){
 		double max = Double.NEGATIVE_INFINITY;
 		double min = Double.POSITIVE_INFINITY;

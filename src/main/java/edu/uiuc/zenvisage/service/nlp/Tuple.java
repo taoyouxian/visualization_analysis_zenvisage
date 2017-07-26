@@ -27,7 +27,7 @@ public class Tuple {
 		return result;
 	}
 	
-	//TODO : remove toTuple
+	/*Example: {0,1,2,3} => [(0,1),(1,2),(2,3)]*/
 	public static Tuple[] toTuple(List<Integer> indexes){
 		Tuple[] result = new Tuple[indexes.size()-1];
 		for(int i = 0 ; i < result.length ; i++){
@@ -36,6 +36,7 @@ public class Tuple {
 		return result;
 	}	
 	
+	/*Deep copy of list of Tuple*/
 	public static ArrayList<Tuple> clone(ArrayList<Tuple> original){
 		ArrayList<Tuple> copy = new ArrayList<>();
 		for(Tuple tuple : original){

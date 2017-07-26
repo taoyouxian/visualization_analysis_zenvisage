@@ -10,7 +10,7 @@ import edu.uiuc.zenvisage.service.ZvMain;
 public class NlpTest {
 	
 	public static void testSdl() throws IOException, InterruptedException, SQLException, ClassNotFoundException{
-		String query = "{\"x\": \"x\", \"y\": \"y\", \"z\": \"z\", \"dataset\": \"data1\", \"approach\": \"approach1\", \"sdlsegments\": \"2\" , \"sdltext\":\"[['', '', '1', '2', '3', '3'],['', 'down', '', '', '', '2']]\"}";
+		String query = "{\"x\": \"x\", \"y\": \"y\", \"z\": \"z\", \"dataset\": \"data1\", \"approach\": \"approach2\", \"sdlsegments\": \"3\" , \"sdltext\":\"[['', 'up', '', '', '', ''],['', 'down', '', '', '', ''],['', '*', '', '', '', '']]\"}";
 		ZvMain zv = new ZvMain();
 		zv.executeSDL(query);
 	}
@@ -54,7 +54,7 @@ public class NlpTest {
 //		}
 //		**********************************************************************
 	
-//	
+	
 //		double[][] data = new double[2][2];
 //		Segment s1 = new Segment(0, 5, data);
 //		Segment s2 = new Segment(5, 10, data);
@@ -70,7 +70,7 @@ public class NlpTest {
 //		l.add(4,s5);
 //		
 //		System.out.println("START");
-//		SdlMain.partition2(l,1, data);
+//		SdlMain.partition2(l,6, data);
 //		
 //		for(Tuple[] tuples  : SdlMain.allPartitions){
 //			for(Tuple a : tuples){
@@ -170,18 +170,20 @@ public class NlpTest {
 //		**********************************************************************		
 //		ShapeQuery shapeQuery = new ShapeQuery();
 //
-//		for(String[] shapeSegment : Data.parser("[['', 'flat', '', '', '', ''],['', 'flat', '', '', '', ''],['', 'up', '', '', '', '']]")){
+//		for(String[] shapeSegment : Data.parser("[['', '*', '', '', '', ''],['', '*', '5', '', '', '']]")){
 //			shapeQuery.shapeSegment.add(new ShapeSegment(shapeSegment[0], shapeSegment[1], shapeSegment[2], shapeSegment[3], shapeSegment[4], shapeSegment[5]));
 //		}
 //		
 //		Tuple[] result = SdlMain.xConstraints(shapeQuery);
-		
+//		
 //		for(Tuple a : result){
 //			System.out.println("TUPLE : ("+a.start_idx+","+a.end_idx+")");
 //		}
-//		System.out.println("------------");	
+//		
+//		System.out.println("**************");	
+//		
 //		double data[][] = new double [1][2];
-//		data[0][0] = 10;
+//		data[0][0] = 30;
 //		data[0][1] = 1;
 //		
 //		for(ArrayList<Tuple> t : SdlMain.allTuples(result,data)){
