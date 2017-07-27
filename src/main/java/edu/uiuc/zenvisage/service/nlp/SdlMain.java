@@ -13,7 +13,7 @@ import org.codehaus.jackson.map.JsonMappingException;
 
 import edu.uiuc.zenvisage.model.Chart;
 import edu.uiuc.zenvisage.model.Result;
-import edu.uiuc.zenvisage.model.Sdlquery;
+import edu.uiuc.zenvisage.service.nlp.Sdlquery;
 
 public class SdlMain {
 	/*Stores all partitions possible*/
