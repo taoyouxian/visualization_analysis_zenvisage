@@ -1,4 +1,4 @@
-package edu.uiuc.zenvisage.service.nlp;
+package edu.uiuc.zenvisage.service.nlp1;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -158,7 +158,7 @@ public class Data{
 	
 	/*Returns the keywords in the pattern*/
 	public static String[] toKeywords(String pattern){
-		return (pattern.trim()).split("\\P{L}+"); 
+		return (pattern.trim()).split("\\P{L}+"); // change to , 
 	}
 	
 	public static ArrayList<String[]> parser(String shapeSegment) throws JsonParseException, JsonMappingException, IOException{

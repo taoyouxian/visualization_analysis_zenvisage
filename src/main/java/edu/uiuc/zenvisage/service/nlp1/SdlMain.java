@@ -1,4 +1,4 @@
-package edu.uiuc.zenvisage.service.nlp;
+package edu.uiuc.zenvisage.service.nlp1;
 
 
 import java.io.IOException;
@@ -28,6 +28,148 @@ public class SdlMain {
 
 	static String test_z = "0";
 	
+	public static Tuple[] xConstraints(ShapeQuery shapeQuery){
+		
+		Tuple[] constraints = new Tuple[shapeQuery.shapeSegment.size()];
+		int i = 0 ;
+		
+		for(ShapeSegment shapeSegment : shapeQuery.shapeSegment){
+			if(shapeSegment.x_start.equals("") && shapeSegment.x_end.equals("")){
+				constraints[i] = new Tuple(-1,-1);
+			}else if(!shapeSegment.x_start.equals("") && shapeSegment.x_end.equals("")){
+				constraints[i] = new Tuple(Integer.parseInt(shapeSegment.x_start),-1);
+			}else if(shapeSegment.x_start.equals("") && !shapeSegment.x_end.equals("")){
+				constraints[i] = new Tuple(-1,Integer.parseInt(shapeSegment.x_end));
+			}else{
+				constraints[i] = new Tuple(Integer.parseInt(shapeSegment.x_start),Integer.parseInt(shapeSegment.x_end));
+			}
+			i++;
+		}
+		return constraints;
+	}	
+	
+	public static ArrayList<ArrayList<Tuple>> allTuples(Tuple[] tuples , double[][] data){
+		
+		ArrayList<ArrayList<Tuple>> result = new ArrayList<>();
+		int x_max = (int)(data[data.length-1][0]-1);
+		
+		/*Case where first x value is 0*/
+		if(data[0][0] == 0){
+			 x_max = (int)(data[data.length-1][0]);
+		}
+		
+		ArrayList<Integer> newFormat = toNewFormat(tuples , x_max);
+		boolean firstRun = true;
+		int j = 1 ;
+		
+		result.add(0,new ArrayList<>());
+
+		for(int i = 0 ; i < newFormat.size() ; i++){
+			if(i == newFormat.size()-1){
+				return result;
+			}
+			
+			if(newFormat.get(i) >= 0 && newFormat.get(i+1) >= 0){
+				for(int k = 0 ; k < j ; k++){
+					result.get(k).add(new Tuple((int)newFormat.get(i),(int)newFormat.get(i+1)));
+				}
+				i++;
+				firstRun = false;
+			}else{//case where newFormat.get(i+1) < 0
+				int last_idx = newFormat.get(i);
+				int partitions = 0 ;
+				while(newFormat.get(i+1) < 0){
+					partitions++;
+					i++;
+				}
+				
+				partitions = (partitions/2) + 1;
+				divide1(last_idx, partitions, new Tuple[partitions], newFormat.get(i+1));
+				i+=1;
+				
+				int old_j = j;
+				
+				j *= allPartitions.size();
+				
+				for(int k = old_j ; k < j ; k++){
+					result.add(k,new ArrayList<>());
+				}
+				
+				ArrayList<ArrayList<Tuple>> tmp = new ArrayList<>();
+				
+				if(!firstRun){
+					for(int n = 0 ; n < old_j ; n++){
+						tmp.add(n,Tuple.clone(result.get(n)));
+					}
+				}
+
+				int start = 0 ;
+				
+				for(int l = 0 ; l < tmp.size() ; l++){
+					for(int idx = start ; idx < start + allPartitions.size() && idx < j; idx ++){
+						result.get(idx).clear();
+						for(Tuple t : tmp.get(l)){
+							result.get(idx).add(t);	
+						}
+					}
+					start += allPartitions.size();
+				}
+			
+//				boolean reversed = false ;
+				
+				for(int k = 0 ; k < j ; k+=0){
+					for(int l = 0 ; l < allPartitions.size() ; l++){
+//						if(!reversed){
+//							Collections.reverse(Arrays.asList(allPartitions.get(l)));
+//						}
+						for(Tuple t : allPartitions.get(l)){
+							result.get(k).add(t);	
+						}
+						k++;
+					}
+//					reversed = true;
+				}
+				allPartitions.clear();
+				firstRun = false;
+			}
+		}
+		return result;
+	}
+	
+	public static ArrayList<Integer> toNewFormat(Tuple[] tuples , int x_max){
+		ArrayList<Integer> result = new ArrayList<>();
+		
+		int j = 0 ;
+		for(int i = 0 ; i < tuples.length ; i++){
+			if(tuples[i].start_idx >= 0){
+				result.add(j,(tuples[i].start_idx));
+				j++;
+			}else{
+				if(i == 0){
+					result.add(j,0); //change to smallest x value
+					j++;
+				}else{
+					result.add(j,tuples[i-1].end_idx);
+					j++;
+				}
+			}
+			
+		    if(tuples[i].end_idx >= 0){
+				result.add(j,(tuples[i].end_idx));
+				j++;
+			}else{
+				if(i == tuples.length-1 ){
+					result.add(j,x_max);
+					j++;
+				}else{
+					result.add(j,(tuples[i+1].start_idx));
+					j++;
+				}	
+			}
+		}
+		return result;
+	}
+
 	public static List<Integer> getIndexes(List<Segment> segment){
 		List<Integer> idx = new ArrayList<>();
 		
@@ -414,148 +556,6 @@ public class SdlMain {
         
 	}
 	
-	public static Tuple[] xConstraints(ShapeQuery shapeQuery){
-		
-		Tuple[] constraints = new Tuple[shapeQuery.shapeSegment.size()];
-		int i = 0 ;
-		
-		for(ShapeSegment shapeSegment : shapeQuery.shapeSegment){
-			if(shapeSegment.x_start.equals("") && shapeSegment.x_end.equals("")){
-				constraints[i] = new Tuple(-1,-1);
-			}else if(!shapeSegment.x_start.equals("") && shapeSegment.x_end.equals("")){
-				constraints[i] = new Tuple(Integer.parseInt(shapeSegment.x_start),-1);
-			}else if(shapeSegment.x_start.equals("") && !shapeSegment.x_end.equals("")){
-				constraints[i] = new Tuple(-1,Integer.parseInt(shapeSegment.x_end));
-			}else{
-				constraints[i] = new Tuple(Integer.parseInt(shapeSegment.x_start),Integer.parseInt(shapeSegment.x_end));
-			}
-			i++;
-		}
-		return constraints;
-	}	
-	
-	public static ArrayList<ArrayList<Tuple>> allTuples(Tuple[] tuples , double[][] data){
-		
-		ArrayList<ArrayList<Tuple>> result = new ArrayList<>();
-		int x_max = (int)(data[data.length-1][0]-1);
-		
-		/*Case where first x value is 0*/
-		if(data[0][0] == 0){
-			 x_max = (int)(data[data.length-1][0]);
-		}
-		
-		ArrayList<Integer> newFormat = toNewFormat(tuples , x_max);
-		boolean firstRun = true;
-		int j = 1 ;
-		
-		result.add(0,new ArrayList<>());
-
-		for(int i = 0 ; i < newFormat.size() ; i++){
-			if(i == newFormat.size()-1){
-				return result;
-			}
-			
-			if(newFormat.get(i) >= 0 && newFormat.get(i+1) >= 0){
-				for(int k = 0 ; k < j ; k++){
-					result.get(k).add(new Tuple((int)newFormat.get(i),(int)newFormat.get(i+1)));
-				}
-				i++;
-				firstRun = false;
-			}else{//case where newFormat.get(i+1) < 0
-				int last_idx = newFormat.get(i);
-				int partitions = 0 ;
-				while(newFormat.get(i+1) < 0){
-					partitions++;
-					i++;
-				}
-				
-				partitions = (partitions/2) + 1;
-				divide1(last_idx, partitions, new Tuple[partitions], newFormat.get(i+1));
-				i+=1;
-				
-				int old_j = j;
-				
-				j *= allPartitions.size();
-				
-				for(int k = old_j ; k < j ; k++){
-					result.add(k,new ArrayList<>());
-				}
-				
-				ArrayList<ArrayList<Tuple>> tmp = new ArrayList<>();
-				
-				if(!firstRun){
-					for(int n = 0 ; n < old_j ; n++){
-						tmp.add(n,Tuple.clone(result.get(n)));
-					}
-				}
-
-				int start = 0 ;
-				
-				for(int l = 0 ; l < tmp.size() ; l++){
-					for(int idx = start ; idx < start + allPartitions.size() && idx < j; idx ++){
-						result.get(idx).clear();
-						for(Tuple t : tmp.get(l)){
-							result.get(idx).add(t);	
-						}
-					}
-					start += allPartitions.size();
-				}
-			
-//				boolean reversed = false ;
-				
-				for(int k = 0 ; k < j ; k+=0){
-					for(int l = 0 ; l < allPartitions.size() ; l++){
-//						if(!reversed){
-//							Collections.reverse(Arrays.asList(allPartitions.get(l)));
-//						}
-						for(Tuple t : allPartitions.get(l)){
-							result.get(k).add(t);	
-						}
-						k++;
-					}
-//					reversed = true;
-				}
-				allPartitions.clear();
-				firstRun = false;
-			}
-		}
-		return result;
-	}
-	
-	public static ArrayList<Integer> toNewFormat(Tuple[] tuples , int x_max){
-		ArrayList<Integer> result = new ArrayList<>();
-		
-		int j = 0 ;
-		for(int i = 0 ; i < tuples.length ; i++){
-			if(tuples[i].start_idx >= 0){
-				result.add(j,(tuples[i].start_idx));
-				j++;
-			}else{
-				if(i == 0){
-					result.add(j,0); //change to smallest x value
-					j++;
-				}else{
-					result.add(j,tuples[i-1].end_idx);
-					j++;
-				}
-			}
-			
-		    if(tuples[i].end_idx >= 0){
-				result.add(j,(tuples[i].end_idx));
-				j++;
-			}else{
-				if(i == tuples.length-1 ){
-					result.add(j,x_max);
-					j++;
-				}else{
-					result.add(j,(tuples[i+1].start_idx));
-					j++;
-				}	
-			}
-		}
-		return result;
-	}
-
 	/*Prints top K best visualizations */
 	public static Result executeSdlQuery(Sdlquery sdlQuery) throws ClassNotFoundException, SQLException, JsonParseException, JsonMappingException, IOException{
 		/*Getting all values needed for query*/
