@@ -59,6 +59,7 @@ import edu.uiuc.zenvisage.service.distance.Distance;
 import edu.uiuc.zenvisage.service.distance.Euclidean;
 import edu.uiuc.zenvisage.service.distance.SegmentationDistance;
 import edu.uiuc.zenvisage.service.nlp.SdlMain;
+import edu.uiuc.zenvisage.service.nlp.Sdlquery;
 import edu.uiuc.zenvisage.model.*;
 import edu.uiuc.zenvisage.service.utility.DataReformation;
 import edu.uiuc.zenvisage.service.utility.LinearNormalization;

@@ -1,6 +1,5 @@
 package edu.uiuc.zenvisage.service.nlp;
 
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -18,7 +17,7 @@ import edu.uiuc.zenvisage.model.Sdlquery;
 
 public class SdlMain {
 	/*Stores all partitions possible*/
-	public static List<Tuple[]> allPartitions = new ArrayList<>();
+	public static List<Partition[]> allPartitions = new ArrayList<>();
 	
 	/*Size of every segment when creating initial list of segments*/
 	static int min_size = 2;
@@ -106,7 +105,7 @@ public class SdlMain {
 		double score = 0 ;
 		
 		double xRange = data[data.length-1][0]-data[0][0];
-		double yRange = Data.findRange(Data.getColumn(data,2));
+		double yRange = DataService.findRange(DataService.getColumn(data,2));
 
 		int overall_length = 0 ;
 		
@@ -197,17 +196,17 @@ public class SdlMain {
 		List<List<Segment>> result = new ArrayList<List<Segment>>();
 		
 		if(nb_partitions == 0){
-			SdlMain.divide1(0, nb_partitions, new Tuple[1], segments.size());
+			SdlMain.divide1(0, nb_partitions, new Partition[1], segments.size());
 		}else{
 			if(segments.size() < nb_partitions){
 				result.add(segments);
 				return result;
 			}
-			SdlMain.divide1(0, nb_partitions, new Tuple[nb_partitions], segments.size());
+			SdlMain.divide1(0, nb_partitions, new Partition[nb_partitions], segments.size());
 		}
 	
-		for(Tuple[] tuples : allPartitions){
-			result.add(Segment.createListSegment(Tuple.toRealIndexes(tuples, segments), data));
+		for(Partition[] partitions : allPartitions){
+			result.add(Segment.createListSegment(Partition.toRealIndexes(partitions, segments), data));
 		}
 		
 		allPartitions.clear();
@@ -215,32 +214,35 @@ public class SdlMain {
 	}
 	   
 	/*Dividing from "start" ending at "end" into all possible "nb_partitions" partitions*/
-	public static void divide1(int start , int nb_partitions , Tuple[] tuples , int end){
+	public static void divide1(int start , int nb_partitions , Partition[] partitions , int end){
 			if(nb_partitions == 1){
-				tuples[0] = new Tuple(start , end); 
-				Collections.reverse(Arrays.asList(tuples));
-				allPartitions.add(tuples);
+				partitions[0] = new Partition(start , end); 
+				Collections.reverse(Arrays.asList(partitions));
+				allPartitions.add(partitions);
 			}else{
 				for(int i = start + 1 ; i < end - nb_partitions + 2 ; i++){
-					tuples[nb_partitions-1] = new Tuple(start,i);
-					divide1(i,nb_partitions-1,tuples.clone(),end);
+					partitions[nb_partitions-1] = new Partition(start,i);
+					divide1(i,nb_partitions-1,partitions.clone(),end);
 				}
 			}
 		}
 	
 	/*Returns the visualization with the highest score*/
-	public static List<Segment> getBestPartition1(int min_size , int nb_segments , String[] pattern , ShapeQuery shapeQuery , double[][] normalized_data , double[][] raw_data){
+	public static SegmentsToZMapping getBestPartition1(int min_size , int nb_segments , String[] pattern , ShapeQuery shapeQuery , String z , double[][] normalized_data , double[][] raw_data){
 		/*Smooth our segments then give all partitions possible*/
 		/*OLD APPROACH 1 */
 //		List<List<Segment>> result = SdlMain.partition1(Segment.smoothing(min_size,nb_segments,shapeQuery.shapeSegment.size(),normalized_data),shapeQuery.shapeSegment.size(), normalized_data);
 		
 		
 		/*HARD CONSTRAINT ON X-VALUES*/
+		
 		List<List<Segment>> result = new ArrayList<>();
-		for(ArrayList<Tuple> tuples : SdlMain.allTuples(SdlMain.xConstraints(shapeQuery),raw_data)){
-			Tuple[] tmp = tuples.toArray(new Tuple[0]);
+		for(ArrayList<Partition> partitions : SdlMain.allPartitions(SdlMain.xConstraints(shapeQuery),raw_data)){
+			Partition[] tmp = partitions.toArray(new Partition[0]);
 			result.add(Segment.createListSegment(tmp, normalized_data));
 		}
+				
+//      *************************************
 		
 		List<Double> scores = new ArrayList<>();
 		/*Score and rank*/
@@ -257,11 +259,11 @@ public class SdlMain {
 				max_score = scores.get(i);
 			}
 		}
-		return result.get(max_idx);
+		return new SegmentsToZMapping(result.get(max_idx), z, normalized_data, scores.get(max_idx));
 	}
 	
 	/*Takes a pattern and a list of segments and returns a score based on these */
-	public static double getScoreKeywords2(List<Segment> segments , String[] pattern , Tuple[] tuples , ShapeQuery shapeQuery){
+	public static double getScoreKeywords2(List<Segment> segments , String[] pattern , Partition[] partitions , ShapeQuery shapeQuery){
 		double score = 0;
 		
 		if(pattern.length == 0){
@@ -320,7 +322,7 @@ public class SdlMain {
 				case "*" : break;
 				}
 
-			if(segments.get(i).end_idx == tuples[j].end_idx){
+			if(segments.get(i).end_idx == partitions[j].end_idx){
 				j++;
 			}
 			
@@ -335,37 +337,37 @@ public class SdlMain {
 	}
 	
 	/*Takes pattern,locations,segments,constant alpha and returns overall score */
-	public static double getOverallScore2(List<Segment> segments , ShapeQuery shapequery , String[] pattern , Tuple[] tuples ,double raw_data[][]){	
+	public static double getOverallScore2(List<Segment> segments , ShapeQuery shapequery , String[] pattern , Partition[] partitions ,double raw_data[][]){	
 //		List<Segment> s = Segment.smoothing2(min_size, shapequery.shapeSegment.size(), shapequery.shapeSegment.size() , raw_data);
-		return getScoreKeywords2(segments,pattern,tuples, shapequery)+(1-getScoreL1(Segment.createListSegment(tuples, raw_data),shapequery,raw_data));
+		return getScoreKeywords2(segments,pattern,partitions, shapequery)+(1-getScoreL1(Segment.createListSegment(partitions, raw_data),shapequery,raw_data));
 	}
 	
 	/*Takes a list of segments and gives all possible partitions */
 	public static void partition2(List<Segment> segments , int nb_partitions , double[][] data){
 		if(segments.size() < nb_partitions){
-			Tuple[] tuples = Tuple.toTuple(SdlMain.getIndexes(segments));
-			allPartitions.add(tuples);
+			Partition[] partitions = Partition.toPartition(SdlMain.getIndexes(segments));
+			allPartitions.add(partitions);
 		}else{
-			SdlMain.divide2(segments,0, nb_partitions, new Tuple[nb_partitions], segments.size());	
+			SdlMain.divide2(segments,0, nb_partitions, new Partition[nb_partitions], segments.size());	
 		}
 	}
 	
 	/*Dividing from "start" ending at "end" into all possible "nb_partitions" partitions*/
-	public static void divide2(List<Segment> segment , int start , int nb_partitions , Tuple[] tuples , int end){
+	public static void divide2(List<Segment> segment , int start , int nb_partitions , Partition[] partitions , int end){
 			if(nb_partitions == 1){
-				tuples[0] = new Tuple(start , end); 
-				Collections.reverse(Arrays.asList(tuples));
-				allPartitions.add(Tuple.toRealIndexes(tuples,segment));
+				partitions[0] = new Partition(start , end); 
+				Collections.reverse(Arrays.asList(partitions));
+				allPartitions.add(Partition.toRealIndexes(partitions,segment));
 			}else{
 				for(int i = start + 1 ; i < end - nb_partitions + 2 ; i++){
-					tuples[nb_partitions-1] = new Tuple(start,i);
-					divide2(segment,i,nb_partitions-1,tuples.clone(),end);
+					partitions[nb_partitions-1] = new Partition(start,i);
+					divide2(segment,i,nb_partitions-1,partitions.clone(),end);
 				}
 			}
 		}
 
 	/*Returns the partition that maximizes the score*/
-	public static Tuple[] getBestPartition2(List<Segment> smooth_segments , int min_size , int nb_segments , String[] pattern , ShapeQuery shapeQuery , double[][] normalized_data , double [][] raw_data){
+	public static SegmentsToZMapping getBestPartition2(List<Segment> smooth_segments , int min_size , int nb_segments , String[] pattern , ShapeQuery shapeQuery , String z , double[][] normalized_data , double [][] raw_data){
 		/*Without constraints*/
 		
 		/*Give all partitions possible of smooth version of segments*/
@@ -373,8 +375,8 @@ public class SdlMain {
 //		List<Double> scores = new ArrayList<>();
 //		
 //		/*Score and rank*/
-//		for(Tuple[] tuples  : allPartitions){
-//			scores.add(SdlMain.getOverallScore2(smooth_segments , shapeQuery, pattern ,tuples , raw_data));
+//		for(Partition[] partitions  : allPartitions){
+//			scores.add(SdlMain.getOverallScore2(smooth_segments , shapeQuery, pattern ,partitions , raw_data));
 //		}
 //		
 //		int max_idx = -1;
@@ -386,16 +388,16 @@ public class SdlMain {
 //				max_score = scores.get(i);
 //			}
 //		}
-//		return allPartitions.get(max_idx);
+//		return new SegmentsMappedWithZ(smooth_segments,allPartitions.get(max_idx),z,normalized_data,scores.get(max_idx));
 		
 //		************************
 		
 		/*WITH HARD CONSTRAINT*/
 		List<Double> scores = new ArrayList<>();
 	
-		ArrayList<ArrayList<Tuple>> result = SdlMain.allTuples(SdlMain.xConstraints(shapeQuery),normalized_data);
-		for(ArrayList<Tuple> tuples : result){
-			Tuple[] tmp = tuples.toArray(new Tuple[0]);
+		ArrayList<ArrayList<Partition>> result = SdlMain.allPartitions(SdlMain.xConstraints(shapeQuery),normalized_data);
+		for(ArrayList<Partition> partitions : result){
+			Partition[] tmp = partitions.toArray(new Partition[0]);
 			scores.add(SdlMain.getOverallScore2(smooth_segments , shapeQuery, pattern ,tmp , raw_data));
 		}
 		
@@ -409,34 +411,34 @@ public class SdlMain {
 			}
 		}
 
-		Tuple[] max_tuple = result.get(max_idx).toArray(new Tuple[0]);
-        return max_tuple;	
+		Partition[] max_partition = result.get(max_idx).toArray(new Partition[0]);
+        return new SegmentsToZMapping(smooth_segments, max_partition, z, normalized_data,scores.get(max_idx));	
         
 	}
 	
-	public static Tuple[] xConstraints(ShapeQuery shapeQuery){
+	public static Partition[] xConstraints(ShapeQuery shapeQuery){
 		
-		Tuple[] constraints = new Tuple[shapeQuery.shapeSegment.size()];
+		Partition[] constraints = new Partition[shapeQuery.shapeSegment.size()];
 		int i = 0 ;
 		
 		for(ShapeSegment shapeSegment : shapeQuery.shapeSegment){
 			if(shapeSegment.x_start.equals("") && shapeSegment.x_end.equals("")){
-				constraints[i] = new Tuple(-1,-1);
+				constraints[i] = new Partition(-1,-1);
 			}else if(!shapeSegment.x_start.equals("") && shapeSegment.x_end.equals("")){
-				constraints[i] = new Tuple(Integer.parseInt(shapeSegment.x_start),-1);
+				constraints[i] = new Partition(Integer.parseInt(shapeSegment.x_start),-1);
 			}else if(shapeSegment.x_start.equals("") && !shapeSegment.x_end.equals("")){
-				constraints[i] = new Tuple(-1,Integer.parseInt(shapeSegment.x_end));
+				constraints[i] = new Partition(-1,Integer.parseInt(shapeSegment.x_end));
 			}else{
-				constraints[i] = new Tuple(Integer.parseInt(shapeSegment.x_start),Integer.parseInt(shapeSegment.x_end));
+				constraints[i] = new Partition(Integer.parseInt(shapeSegment.x_start),Integer.parseInt(shapeSegment.x_end));
 			}
 			i++;
 		}
 		return constraints;
 	}	
 	
-	public static ArrayList<ArrayList<Tuple>> allTuples(Tuple[] tuples , double[][] data){
+	public static ArrayList<ArrayList<Partition>> allPartitions(Partition[] partitions , double[][] data){
 		
-		ArrayList<ArrayList<Tuple>> result = new ArrayList<>();
+		ArrayList<ArrayList<Partition>> result = new ArrayList<>();
 		int x_max = (int)(data[data.length-1][0]-1);
 		
 		/*Case where first x value is 0*/
@@ -444,7 +446,7 @@ public class SdlMain {
 			 x_max = (int)(data[data.length-1][0]);
 		}
 		
-		ArrayList<Integer> newFormat = toNewFormat(tuples , x_max);
+		ArrayList<Integer> newFormat = toNewFormat(partitions , x_max);
 		boolean firstRun = true;
 		int j = 1 ;
 		
@@ -457,20 +459,20 @@ public class SdlMain {
 			
 			if(newFormat.get(i) >= 0 && newFormat.get(i+1) >= 0){
 				for(int k = 0 ; k < j ; k++){
-					result.get(k).add(new Tuple((int)newFormat.get(i),(int)newFormat.get(i+1)));
+					result.get(k).add(new Partition((int)newFormat.get(i),(int)newFormat.get(i+1)));
 				}
 				i++;
 				firstRun = false;
 			}else{//case where newFormat.get(i+1) < 0
 				int last_idx = newFormat.get(i);
-				int partitions = 0 ;
+				int nb_partitions = 0 ;
 				while(newFormat.get(i+1) < 0){
-					partitions++;
+					nb_partitions++;
 					i++;
 				}
 				
-				partitions = (partitions/2) + 1;
-				divide1(last_idx, partitions, new Tuple[partitions], newFormat.get(i+1));
+				nb_partitions = (nb_partitions/2) + 1;
+				divide1(last_idx, nb_partitions, new Partition[nb_partitions], newFormat.get(i+1));
 				i+=1;
 				
 				int old_j = j;
@@ -481,11 +483,11 @@ public class SdlMain {
 					result.add(k,new ArrayList<>());
 				}
 				
-				ArrayList<ArrayList<Tuple>> tmp = new ArrayList<>();
+				ArrayList<ArrayList<Partition>> tmp = new ArrayList<>();
 				
 				if(!firstRun){
 					for(int n = 0 ; n < old_j ; n++){
-						tmp.add(n,Tuple.clone(result.get(n)));
+						tmp.add(n,Partition.clone(result.get(n)));
 					}
 				}
 
@@ -494,7 +496,7 @@ public class SdlMain {
 				for(int l = 0 ; l < tmp.size() ; l++){
 					for(int idx = start ; idx < start + allPartitions.size() && idx < j; idx ++){
 						result.get(idx).clear();
-						for(Tuple t : tmp.get(l)){
+						for(Partition t : tmp.get(l)){
 							result.get(idx).add(t);	
 						}
 					}
@@ -508,7 +510,7 @@ public class SdlMain {
 //						if(!reversed){
 //							Collections.reverse(Arrays.asList(allPartitions.get(l)));
 //						}
-						for(Tuple t : allPartitions.get(l)){
+						for(Partition t : allPartitions.get(l)){
 							result.get(k).add(t);	
 						}
 						k++;
@@ -522,33 +524,33 @@ public class SdlMain {
 		return result;
 	}
 	
-	public static ArrayList<Integer> toNewFormat(Tuple[] tuples , int x_max){
+	public static ArrayList<Integer> toNewFormat(Partition[] partitions , int x_max){
 		ArrayList<Integer> result = new ArrayList<>();
 		
 		int j = 0 ;
-		for(int i = 0 ; i < tuples.length ; i++){
-			if(tuples[i].start_idx >= 0){
-				result.add(j,(tuples[i].start_idx));
+		for(int i = 0 ; i < partitions.length ; i++){
+			if(partitions[i].start_idx >= 0){
+				result.add(j,(partitions[i].start_idx));
 				j++;
 			}else{
 				if(i == 0){
 					result.add(j,0); //change to smallest x value
 					j++;
 				}else{
-					result.add(j,tuples[i-1].end_idx);
+					result.add(j,partitions[i-1].end_idx);
 					j++;
 				}
 			}
 			
-		    if(tuples[i].end_idx >= 0){
-				result.add(j,(tuples[i].end_idx));
+		    if(partitions[i].end_idx >= 0){
+				result.add(j,(partitions[i].end_idx));
 				j++;
 			}else{
-				if(i == tuples.length-1 ){
+				if(i == partitions.length-1 ){
 					result.add(j,x_max);
 					j++;
 				}else{
-					result.add(j,(tuples[i+1].start_idx));
+					result.add(j,(partitions[i+1].start_idx));
 					j++;
 				}	
 			}
@@ -567,205 +569,87 @@ public class SdlMain {
 		String approach = sdlQuery.approach;
 		int nb_segments = Integer.parseInt(sdlQuery.sdlsegments);
 		
-		long tStart1 = System.currentTimeMillis();
-		
-		/*z values*/
-		ArrayList<String> zs = Data.allZs;
+		/*Get all z values*/
+		ArrayList<String> zs = DataService.allZs;
 
-		long tEnd1 = System.currentTimeMillis();
-		System.out.println("Elapsed time for getting all Zs "+(tEnd1-tStart1));
+		/*Fetch all data*/
+		ArrayList<double[][]> originalData = DataService.fetchAllData(X, Y, Z, tableName);
+		
+		/*Normalized version of original data(y values)*/
+		ArrayList<double[][]> normalizedData = DataService.normalizeData(DataService.cloneData(originalData));
+
+		/*Parsing shapeQuery*/
+		ShapeQuery shapeQuery = DataService.parser(keywords);
+		
+		/*Getting the pattern from the shape query*/
+		String[] pattern = DataService.getPatternFromShapeQuery(shapeQuery);
 	
-		long tStart2 = System.currentTimeMillis();
+		/*A list storing the best visualization for every z-value*/
+		List<SegmentsToZMapping> scores = new ArrayList<>();
 		
-		ArrayList<double[][]> data = Data.fetchAllData(X, Y, Z, tableName);
-		
-		/*Clone data (the original will be normalized)*/
-		ArrayList<double[][]> originalData = new ArrayList<>();
-		for(double[][] d : data){
-		    double[][] result = new double[d.length][];
-		    for (int r = 0; r < d.length; r++) {
-		        result[r] = d[r].clone();
-		    }
-			originalData.add(result);
-		}
-		
-		/*Z-Normalize data(Y values)*/
-		for(double[][] single_data : data){
-			double[] normalized = Data.zNormalize(Data.getColumn(single_data,2));
-			for(int i = 0 ; i < single_data.length ; i++){
-				 single_data[i][1] = normalized[i]; 
-			}
-		}
-		
-		
-		long tEnd2 = System.currentTimeMillis();
-		System.out.println("Elapsed time to fetch all data "+(tEnd2-tStart2));
-		
-		/*a list storing the best visualization for every z-value*/
-		List<SegmentsAndZ> bestOfEachZ = new ArrayList<>();
+		/*Store best representation with its z value*/
+		for(int i = 0 ; i < normalizedData.size() ; i++){
+			/*Test if we can have at least one segment*/
+			if(normalizedData.get(i).length > 1){
+				if(approach.equals("approach1")){
+					scores.add(SdlMain.getBestPartition1(min_size, nb_segments, pattern , shapeQuery , zs.get(i), normalizedData.get(i) , originalData.get(i)));
+				}else{
+					List<Segment> smooth_segments = Segment.initialize(normalizedData.get(i),min_size);	
+					scores.add(SdlMain.getBestPartition2(smooth_segments , min_size, nb_segments, pattern , shapeQuery , zs.get(i), normalizedData.get(i) , originalData.get(i)));
+				}
 
-		/*Get the pattern*/
-		long tStart3 = System.currentTimeMillis();
-				
-		ShapeQuery shapeQuery = new ShapeQuery();
-		
-		/*Parsing shapeQuery*/ 
-		for(String[] shapeSegment : Data.parser(keywords)){
-			if(shapeSegment[1].equals("") && (shapeSegment[4].equals("") || shapeSegment[5].equals(""))){
-				throw new IOException("---------------ERROR : INCOMPLETE INFORMATION---------------");
-			}
-			shapeQuery.shapeSegment.add(new ShapeSegment(shapeSegment[0], shapeSegment[1], shapeSegment[2], shapeSegment[3], shapeSegment[4], shapeSegment[5]));
-		}
-		
-		ArrayList<String> keywrds = new ArrayList<>();
-		
-		for(ShapeSegment shapeSegment : shapeQuery.shapeSegment){
-			if(!shapeSegment.keyword.equals("")){
-				keywrds.add(shapeSegment.keyword);
 			}
 		}
+		allPartitions.clear();
 		
-		/*Stores the pattern in the query*/
-		String[] pattern = new String[keywrds.size()];
-		for(int i = 0 ; i < pattern.length ; i++){
-			pattern[i] = keywrds.get(i);
-		}
-		
-		long tEnd3 = System.currentTimeMillis();
-		System.out.println("Elapsed time toKeywords "+(tEnd3-tStart3));
-		
-		
-		long tStart4 = System.currentTimeMillis();
-		
-		if(approach.equals("approach1")){
-			/*Store best representation with its z value*/
-			for(int i = 0 ; i < data.size() ; i++){
-				/*Test if we can have at least one segment*/
-				if(data.get(i).length > 1){
-						bestOfEachZ.add(new SegmentsAndZ(SdlMain.getBestPartition1(min_size, nb_segments, pattern , shapeQuery , data.get(i) , originalData.get(i)), zs.get(i), data.get(i)));
-					}
+		/*Sort list of segments depending on score*/
+		Collections.sort(scores, new Comparator<SegmentsToZMapping>() {
+			@Override public int compare(SegmentsToZMapping s1, SegmentsToZMapping s2) {
+				if(s1.score < s2.score){
+					return 1;
+				}else if(s1.score > s2.score){
+					return -1;
+				}else{
+					return 0;
 				}
-				allPartitions.clear();
-		}else{
-			for(int i = 0 ; i < data.size() ; i++){
-				/*Test if we can have at least one segment*/
-				if(data.get(i).length > 1){
-					List<Segment> smooth_segments = Segment.initialize(data.get(i),min_size);	
-					bestOfEachZ.add(new SegmentsAndZ(smooth_segments,SdlMain.getBestPartition2(smooth_segments , min_size, nb_segments, pattern , shapeQuery  , data.get(i) , originalData.get(i)), zs.get(i), data.get(i)));
-					}
-				}
-				allPartitions.clear();
+			}
+		});
+		
+		/*Print the top k visualizations*/
+		int top_K = Math.min(topK,scores.size());
+	
+		for(int i = 0 ; i < top_K  ; i++){
+			SegmentsToZMapping.print(scores.get(i));
 		}
-		
-		long tEnd4 = System.currentTimeMillis();
-		System.out.println("Elapsed time to get best partitions "+(tEnd4-tStart4));
-		
-		long tStart5 = System.currentTimeMillis();
-		
-		if(approach.equals("approach1")){
-			/*Sort list of segments depending on score*/
-			Collections.sort(bestOfEachZ, new Comparator<SegmentsAndZ>() {
-		        @Override public int compare(SegmentsAndZ s1, SegmentsAndZ s2) {
-		        	if(SdlMain.getOverallScore1(s1.segments, shapeQuery, pattern,s1.data , originalData.get(zs.indexOf(s1.z))) <  SdlMain.getOverallScore1(s2.segments, shapeQuery, pattern,s2.data,originalData.get(zs.indexOf(s2.z)))){
-		        		return 1;
-		        	}else if(SdlMain.getOverallScore1(s1.segments, shapeQuery, pattern,s1.data,originalData.get(zs.indexOf(s1.z))) >  SdlMain.getOverallScore1(s2.segments, shapeQuery, pattern,s2.data,originalData.get(zs.indexOf(s2.z)))){
-		        		return -1;
-		        	}else{
-		        		return 0;
-		        	}
-		        }
-			});
-		}else{
-			/*Sort list of segments depending on score*/
-			Collections.sort(bestOfEachZ, new Comparator<SegmentsAndZ>() {
-		        @Override public int compare(SegmentsAndZ s1, SegmentsAndZ s2) {
-		        	if(SdlMain.getOverallScore2(s1.segments, shapeQuery, pattern,s1.tuples, originalData.get(zs.indexOf(s1.z))) <  SdlMain.getOverallScore2(s2.segments, shapeQuery, pattern,s2.tuples, originalData.get(zs.indexOf(s2.z)))){
-		        		return 1;
-		        	}else if(SdlMain.getOverallScore2(s1.segments, shapeQuery, pattern,s1.tuples, originalData.get(zs.indexOf(s1.z))) >  SdlMain.getOverallScore2(s2.segments, shapeQuery, pattern,s2.tuples, originalData.get(zs.indexOf(s2.z)))){
-		        		return -1;
-		        	}else{
-		        		return 0;
-		        	}
-		        }
-			});
+
+		/*Indexes of top k visualizations*/
+		for(int i = 0 ; i < top_K  ; i++){
+			System.out.println("z is : "+scores.get(i).z);
 		}
-		
-		long tEnd5 = System.currentTimeMillis();
-		System.out.println("Elapsed time to sort "+(tEnd5-tStart5));
-		
-		long tStart6 = System.currentTimeMillis();
 		
 		/*Check the details about a specific z(test_z)*/
-//		 for(int i = 0 ; i < bestOfEachZ.size(); i++){
-//			 if(bestOfEachZ.get(i).z.equals(test_z)){
-//				 System.out.println("z : "+bestOfEachZ.get(i).z);
-//				 System.out.println("it's : "+i);
-//				 System.out.println("z is : "+bestOfEachZ.get(i).z);
-//					System.out.println("score is  : "+SdlMain.getOverallScore1(bestOfEachZ.get(i).segments, shapeQuery, pattern,bestOfEachZ.get(i).data,data1.get(zs.indexOf(bestOfEachZ.get(i).z))));
-//					Segment.printListSegments(bestOfEachZ.get(i).segments);
-//					System.out.println("////////////////");
+//		 for(int i = 0 ; i < scores.size(); i++){
+//			 if(scores.get(i).z.equals(test_z)){
+//				 System.out.println("z : "+scores.get(i).z);
+//				 System.out.println("its rank is : "+i);
+//				 SegmentsMappedWithZ.print(scores.get(i));
 //			 }
 //		 }
-
-		/*Returns the top k visualizations*/
-		int top_K = Math.min(topK,bestOfEachZ.size());
-		if(approach.equals("approach1")){
-			for(int i = 0 ; i < top_K  ; i++){
-				System.out.println("z is : "+bestOfEachZ.get(i).z);
-				System.out.println("score is  : "+SdlMain.getOverallScore1(bestOfEachZ.get(i).segments, shapeQuery, pattern,bestOfEachZ.get(i).data,originalData.get(zs.indexOf(bestOfEachZ.get(i).z))));
-				Segment.printListSegments((bestOfEachZ.get(i).segments));
-				System.out.println("////////////////");
-			}
-			
-			for(int i = 0 ; i < top_K  ; i++){
-				System.out.println("z is : "+bestOfEachZ.get(i).z);
-			}
-		}else{
-			for(int i = 0 ; i < top_K  ; i++){
-				System.out.println("z is : "+bestOfEachZ.get(i).z);
-				System.out.println("overall score is  : "+SdlMain.getOverallScore2(bestOfEachZ.get(i).segments, shapeQuery, pattern,bestOfEachZ.get(i).tuples,originalData.get(zs.indexOf(bestOfEachZ.get(i).z))));
-				System.out.println("score K : "+SdlMain.getScoreKeywords2(bestOfEachZ.get(i).segments, pattern, bestOfEachZ.get(i).tuples, shapeQuery));
-				System.out.println("score L : "+SdlMain.getScoreL1(Segment.createListSegment(bestOfEachZ.get(i).tuples, originalData.get(zs.indexOf(bestOfEachZ.get(i).z))),shapeQuery,originalData.get(zs.indexOf(bestOfEachZ.get(i).z))));
-				Segment.printListSegments(bestOfEachZ.get(i).segments);
-				System.out.println("////////////////");
-			}
-			
-
-			for(int i = 0 ; i < top_K  ; i++){
-				System.out.println("z is : "+bestOfEachZ.get(i).z);
-			}
-			
-		}
-
 		
-		long tEnd6 = System.currentTimeMillis();
-		System.out.println("Elapsed time to get top K "+(tEnd6-tStart6));
-		
-		long tStart7 = System.currentTimeMillis();
-		
-		List<SegmentsAndZ> result = bestOfEachZ.subList(0,top_K);
-		
-		long tEnd7 = System.currentTimeMillis();
-		System.out.println("Elapsed time to get sublist "+(tEnd7-tStart7));
-
-		/*Send normalized data to front-end
-		return convertOutputtoVisualization(result,data,zs,sdlquery,top_K);
-		*/
-		
-		/*Send raw data to front-end*/
-		return convertOutputtoVisualization(result,originalData,zs,sdlQuery,top_K);
+		List<SegmentsToZMapping> bestVisualizations = scores.subList(0,top_K);
+		return convertOutputtoVisualization(bestVisualizations,originalData/*normalizedData*/,zs,sdlQuery,top_K);
 	}
 	
 	/*Converts the top K List<Segment> to Result format*/
-	 public static Result convertOutputtoVisualization(List<SegmentsAndZ> top_k_results , ArrayList<double[][]> data ,ArrayList<String> zs , Sdlquery sdlQuery , int topK) throws SQLException, ClassNotFoundException{
+	 public static Result convertOutputtoVisualization(List<SegmentsToZMapping> top_k_results , ArrayList<double[][]> data ,ArrayList<String> zs , Sdlquery sdlQuery , int topK) throws SQLException, ClassNotFoundException{
 		long tStart7 = System.currentTimeMillis();
 		Result result = new Result();
 		
 		for(int i = 0 ; i < topK ; i++){
 			result.outputCharts.add(i,new Chart());
 
-			result.outputCharts.get(i).setxData(Data.doubleToString(Data.getColumn(data.get(zs.indexOf(top_k_results.get(i).z)),1)));
-			result.outputCharts.get(i).setyData(Data.doubleToString(Data.getColumn(data.get(zs.indexOf(top_k_results.get(i).z)),2)));
+			result.outputCharts.get(i).setxData(DataService.doubleToString(DataService.getColumn(data.get(zs.indexOf(top_k_results.get(i).z)),1)));
+			result.outputCharts.get(i).setyData(DataService.doubleToString(DataService.getColumn(data.get(zs.indexOf(top_k_results.get(i).z)),2)));
 			
 			result.outputCharts.get(i).setRank(i+1);
 			result.outputCharts.get(i).setxType(sdlQuery.x);

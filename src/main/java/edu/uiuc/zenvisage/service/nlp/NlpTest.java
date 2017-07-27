@@ -10,7 +10,7 @@ import edu.uiuc.zenvisage.service.ZvMain;
 public class NlpTest {
 	
 	public static void testSdl() throws IOException, InterruptedException, SQLException, ClassNotFoundException{
-		String query = "{\"x\": \"x\", \"y\": \"y\", \"z\": \"z\", \"dataset\": \"data1\", \"approach\": \"approach2\", \"sdlsegments\": \"3\" , \"sdltext\":\"[['', 'up', '', '', '', ''],['', 'down', '', '', '', ''],['', '*', '', '', '', '']]\"}";
+		String query = "{\"x\": \"x\", \"y\": \"y\", \"z\": \"z\", \"dataset\": \"data1\", \"approach\": \"approach1\", \"sdlsegments\": \"3\" , \"sdltext\":\"[['', 'down', '', '', '', ''],['', '*', '', '', '', '']]\"}";
 		ZvMain zv = new ZvMain();
 		zv.executeSDL(query);
 	}

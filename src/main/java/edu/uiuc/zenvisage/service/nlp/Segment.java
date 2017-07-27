@@ -14,22 +14,22 @@ public class Segment{
 		this.start_idx = start_idx;
 		this.end_idx = end_idx;
 		SimpleRegression regression = new SimpleRegression();	
-		regression.addData(Data.getPart(start_idx, end_idx, data)); 
+		regression.addData(DataService.getPart(start_idx, end_idx, data)); 
 		this.slope = regression.getSlope();
 		this.beta = regression.getIntercept();
 		this.error = regression.getSumSquaredErrors();
 	}
 	
-	/*Create Segment from a tuple*/
-	public static Segment createSegment(Tuple tuple , double[][] data){
-		return new Segment(tuple.start_idx,tuple.end_idx,data);
+	/*Create Segment from a partition*/
+	public static Segment createSegment(Partition partition , double[][] data){
+		return new Segment(partition.start_idx,partition.end_idx,data);
 	}
 		
-	/*Creates a list of segments from a list of tuples*/
-	public static List<Segment> createListSegment(Tuple[] tuples , double[][] data){
+	/*Creates a list of segments from a list of partitions*/
+	public static List<Segment> createListSegment(Partition[] partitions , double[][] data){
 		List<Segment> result = new ArrayList<>();
-		for(Tuple tuple : tuples){
-			result.add(createSegment(tuple, data));
+		for(Partition partition : partitions){
+			result.add(createSegment(partition, data));
 		}
 		return result;
 	}

@@ -14,7 +14,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 
 /*data is data[n][2]*/
-public class Data{
+public class DataService{
 	private String database = "postgres";
 	private String host = "jdbc:postgresql://localhost:5432/"+database;
 	private String username = "postgres";
@@ -25,7 +25,7 @@ public class Data{
 	public static ArrayList<String> allZs = new ArrayList<>();
 
 	/*Initialize connection*/
-	public Data() {
+	public DataService() {
 	      try {
 		         Class.forName("org.postgresql.Driver");
 		         c = DriverManager
@@ -55,7 +55,7 @@ public class Data{
 	}
 	
 	/*Gets the data of a single z value from Postgres and stores it in a 2D array*/
-	public static double[][]  fetchSingleData(String X , String Y ,String Z , String singleValue , String tableName , Data executor) throws SQLException, ClassNotFoundException{
+	public static double[][]  fetchSingleData(String X , String Y ,String Z , String singleValue , String tableName , DataService executor) throws SQLException, ClassNotFoundException{
 //		SQLQueryExecutor queryExecutor = new SQLQueryExecutor();
 		
 //		String sql = "SELECT " + Z + "," + X + "," + "avg(" + Y + ")"
@@ -106,7 +106,7 @@ public class Data{
 	public static ArrayList<double[][]> fetchAllData(String X , String Y , String Z , String tableName ) throws SQLException, ClassNotFoundException{
 		/*ArrayList<double[][]> result = new ArrayList<>();*/
 		ArrayList<ArrayList<double[]>> result = new ArrayList<>();
-		Data queryExecutor = new Data();
+		DataService queryExecutor = new DataService();
 		
 		/*String sql = "SELECT DISTINCT " + Z + " FROM " + tableName;*/
 		String sql = "SELECT " + Z + "," + X + "," +"avg(" + Y + ")"
@@ -134,6 +134,48 @@ public class Data{
 		return toArrayListDouble(result);
 	}
 	
+	/*Extract the pattern from the shape query*/
+	public static String[] getPatternFromShapeQuery(ShapeQuery shapeQuery){
+		ArrayList<String> keywrds = new ArrayList<>();
+		
+		for(ShapeSegment shapeSegment : shapeQuery.shapeSegment){
+			if(!shapeSegment.keyword.equals("")){
+				keywrds.add(shapeSegment.keyword);
+			}
+		}
+		
+		String[] pattern = new String[keywrds.size()];
+		for(int i = 0 ; i < pattern.length ; i++){
+			pattern[i] = keywrds.get(i);
+		}
+		
+		return pattern;
+	}
+
+	/*Returns a clone of data*/
+	public static ArrayList<double[][]> cloneData(ArrayList<double[][]> originalData){
+		ArrayList<double[][]> clone = new ArrayList<>();
+		for(double[][] d : originalData){
+		    double[][] result = new double[d.length][];
+		    for (int r = 0; r < d.length; r++) {
+		        result[r] = d[r].clone();
+		    }
+		    clone.add(result);
+		}
+		return clone;
+	}
+	
+	/*Returns a normalized version of data*/
+	public static ArrayList<double[][]> normalizeData(ArrayList<double[][]> originalData){
+		for(double[][] single_data : originalData){
+			double[] normalized = DataService.zNormalize(DataService.getColumn(single_data,2));
+			for(int i = 0 ; i < single_data.length ; i++){
+				 single_data[i][1] = normalized[i]; 
+			}
+		}
+		return originalData;
+	}
+
 	/*Gives a slice of the data*/
 	public static double[][] getPart(int start_idx , int end_idx , double[][] data){
 		 double[][] result = new double[end_idx - start_idx + 1][2];
@@ -146,7 +188,7 @@ public class Data{
 	 
 	/*Returns the list of z values*/
 	public static ArrayList<String> getZs(String Z , String tableName) throws SQLException{
-		 Data queryExecutor = new Data();
+		 DataService queryExecutor = new DataService();
 		 ArrayList<String> result = new ArrayList<>();
 		 String sql = "SELECT DISTINCT " + Z + " FROM " + tableName;
 		 ResultSet rows = queryExecutor.query(sql);
@@ -161,13 +203,16 @@ public class Data{
 		return (pattern.trim()).split("\\P{L}+"); 
 	}
 	
-	public static ArrayList<String[]> parser(String shapeSegment) throws JsonParseException, JsonMappingException, IOException{
-		shapeSegment = shapeSegment.replaceAll("'", "\"");
+	
+	public static ShapeQuery parser(String shapeQueryString) throws JsonParseException, JsonMappingException, IOException{
+		ShapeQuery shapeQuery = new ShapeQuery();
 		
-		ArrayList<String[]> result = new ArrayList<>();
+		shapeQueryString = shapeQueryString.replaceAll("'", "\"");
+		
+		ArrayList<String[]> arrayOfShapeSegments = new ArrayList<>();
 		
 		ObjectMapper mapper = new ObjectMapper();
-		String[][] big_array = mapper.readValue(shapeSegment,String[][].class);
+		String[][] big_array = mapper.readValue(shapeQueryString,String[][].class);
 		
 		for (int i = 0 ; i < big_array.length; i++){
 			String[] small_array = big_array[i];
@@ -178,10 +223,17 @@ public class Data{
 			String y_start = small_array[3];
 			String y_end = small_array[5];
 			String[] tuple = {modifier,pattern,x_start,x_end,y_start,y_end};
-			result.add(tuple);
+			arrayOfShapeSegments.add(tuple);
 		}
 		
-		return result;
+		for(String[] shapeSegment : arrayOfShapeSegments){
+			if(shapeSegment[1].equals("") && (shapeSegment[4].equals("") || shapeSegment[5].equals(""))){
+				throw new IOException("---------------ERROR : INCOMPLETE INFORMATION---------------");
+			}
+			shapeQuery.shapeSegment.add(new ShapeSegment(shapeSegment[0], shapeSegment[1], shapeSegment[2], shapeSegment[3], shapeSegment[4], shapeSegment[5]));
+		}
+		
+		return shapeQuery;
 	}
 		
 	/*Converts  array of double to array of strings*/

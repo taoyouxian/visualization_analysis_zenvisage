@@ -1,4 +1,4 @@
-package edu.uiuc.zenvisage.model;
+package edu.uiuc.zenvisage.service.nlp;
 /* @tarique
  * 
  */
