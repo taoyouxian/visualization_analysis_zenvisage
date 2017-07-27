@@ -14,18 +14,18 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 
 /*data is data[n][2]*/
-public class Data{
+public class DataService{
 	private String database = "postgres";
 	private String host = "jdbc:postgresql://localhost:5432/"+database;
 	private String username = "postgres";
 	private String password = "zenvisage";
-	Connection c = null;
+	public static Connection c = null;
 	
 	/*Stores list of Z values*/
 	public static ArrayList<String> allZs = new ArrayList<>();
 
 	/*Initialize connection*/
-	public Data() {
+	public DataService() {
 	      try {
 		         Class.forName("org.postgresql.Driver");
 		         c = DriverManager
@@ -48,14 +48,14 @@ public class Data{
 	}
 	
 	/*Given a SQL query returns a ResultSet*/
-	public ResultSet query(String sQLQuery) throws SQLException {
+	public static ResultSet query(String sQLQuery) throws SQLException {
 	      Statement stmt = c.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
 	      ResultSet ret = stmt.executeQuery(sQLQuery);;
 	      return ret;
 	}
 	
 	/*Gets the data of a single z value from Postgres and stores it in a 2D array*/
-	public static double[][]  fetchSingleData(String X , String Y ,String Z , String singleValue , String tableName , Data executor) throws SQLException, ClassNotFoundException{
+	public static double[][]  fetchSingleData(String X , String Y ,String Z , String singleValue , String tableName , DataService executor) throws SQLException, ClassNotFoundException{
 //		SQLQueryExecutor queryExecutor = new SQLQueryExecutor();
 		
 //		String sql = "SELECT " + Z + "," + X + "," + "avg(" + Y + ")"
@@ -102,19 +102,20 @@ public class Data{
 		return result;
 	}	
 	
-	/*Gets the data of a all z values from Postgres and stores it in a list*/
+	
+	//This might not work for scatter-plot.
+	/*Gets the data of all z values from Postgres and stores it in a list*/
 	public static ArrayList<double[][]> fetchAllData(String X , String Y , String Z , String tableName ) throws SQLException, ClassNotFoundException{
 		/*ArrayList<double[][]> result = new ArrayList<>();*/
 		ArrayList<ArrayList<double[]>> result = new ArrayList<>();
-		Data queryExecutor = new Data();
-		
+	  
 		/*String sql = "SELECT DISTINCT " + Z + " FROM " + tableName;*/
 		String sql = "SELECT " + Z + "," + X + "," +"avg(" + Y + ")"
 				+ " FROM " + tableName 
 				+ " GROUP BY " + Z + "," + X
 				+ " ORDER BY "+ Z + "," + X;
 				
-		ResultSet rows = queryExecutor.query(sql);
+		ResultSet rows = query(sql);
 		String z = "" ;
 		int i = -1;
 		int j = 0;
@@ -131,6 +132,7 @@ public class Data{
 			result.get(i).add(j,row);
 			j++;
 		}
+		// convert to array of doubles.
 		return toArrayListDouble(result);
 	}
 	
@@ -146,7 +148,7 @@ public class Data{
 	 
 	/*Returns the list of z values*/
 	public static ArrayList<String> getZs(String Z , String tableName) throws SQLException{
-		 Data queryExecutor = new Data();
+		 DataService queryExecutor = new DataService();
 		 ArrayList<String> result = new ArrayList<>();
 		 String sql = "SELECT DISTINCT " + Z + " FROM " + tableName;
 		 ResultSet rows = queryExecutor.query(sql);
@@ -161,13 +163,13 @@ public class Data{
 		return (pattern.trim()).split("\\P{L}+"); // change to , 
 	}
 	
-	public static ArrayList<String[]> parser(String shapeSegment) throws JsonParseException, JsonMappingException, IOException{
-		shapeSegment = shapeSegment.replaceAll("'", "\"");
+	public static ArrayList<String[]> parser(String sdlText) throws JsonParseException, JsonMappingException, IOException{
+		sdlText = sdlText.replaceAll("'", "\"");
 		
 		ArrayList<String[]> result = new ArrayList<>();
 		
 		ObjectMapper mapper = new ObjectMapper();
-		String[][] big_array = mapper.readValue(shapeSegment,String[][].class);
+		String[][] big_array = mapper.readValue(sdlText,String[][].class);
 		
 		for (int i = 0 ; i < big_array.length; i++){
 			String[] small_array = big_array[i];

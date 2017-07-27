@@ -14,7 +14,7 @@ public class Segment{
 		this.start_idx = start_idx;
 		this.end_idx = end_idx;
 		SimpleRegression regression = new SimpleRegression();	
-		regression.addData(Data.getPart(start_idx, end_idx, data)); 
+		regression.addData(DataService.getPart(start_idx, end_idx, data)); 
 		this.slope = regression.getSlope();
 		this.beta = regression.getIntercept();
 		this.error = regression.getSumSquaredErrors();

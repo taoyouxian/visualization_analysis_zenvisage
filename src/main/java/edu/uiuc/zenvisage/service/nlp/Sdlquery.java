@@ -2,6 +2,7 @@ package edu.uiuc.zenvisage.model;
 /* @tarique
  * 
  */
+// This is the query that we get from front-end.
 public class Sdlquery {
 	public String x;
 	public String y;

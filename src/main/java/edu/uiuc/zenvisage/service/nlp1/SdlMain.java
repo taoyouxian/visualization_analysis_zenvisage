@@ -248,7 +248,7 @@ public class SdlMain {
 		double score = 0 ;
 		
 		double xRange = data[data.length-1][0]-data[0][0];
-		double yRange = Data.findRange(Data.getColumn(data,2));
+		double yRange = DataService.findRange(DataService.getColumn(data,2));
 
 		int overall_length = 0 ;
 		
@@ -556,6 +556,10 @@ public class SdlMain {
         
 	}
 	
+	
+	
+	
+	
 	/*Prints top K best visualizations */
 	public static Result executeSdlQuery(Sdlquery sdlQuery) throws ClassNotFoundException, SQLException, JsonParseException, JsonMappingException, IOException{
 		/*Getting all values needed for query*/
@@ -569,31 +573,35 @@ public class SdlMain {
 		
 		long tStart1 = System.currentTimeMillis();
 		
+		
+		//TODO: Not sure if we need this. Please check.
 		/*z values*/
-		ArrayList<String> zs = Data.allZs;
+		ArrayList<String> zs = DataService.allZs;
 
 		long tEnd1 = System.currentTimeMillis();
 		System.out.println("Elapsed time for getting all Zs "+(tEnd1-tStart1));
 	
 		long tStart2 = System.currentTimeMillis();
 		
-		ArrayList<double[][]> data = Data.fetchAllData(X, Y, Z, tableName);
+		//TODO:Rename this original data, and other one after copying to normalized data
+		ArrayList<double[][]> data = DataService.fetchAllData(X, Y, Z, tableName);
 		
 		/*Clone data (the original will be normalized)*/
-		ArrayList<double[][]> data1 = new ArrayList<>();
+		ArrayList<double[][]> originalData = new ArrayList<>();
 		for(double[][] d : data){
 		    double[][] result = new double[d.length][];
 		    for (int r = 0; r < d.length; r++) {
 		        result[r] = d[r].clone();
 		    }
-			data1.add(result);
+			originalData.add(result);
 		}
 		
+		
 		/*Z-Normalize data(Y values)*/
-		for(double[][] single_data : data){
-			double[] normalized = Data.zNormalize(Data.getColumn(single_data,2));
-			for(int i = 0 ; i < single_data.length ; i++){
-				 single_data[i][1] = normalized[i]; 
+		for(double[][] singleZ : data){
+			double[] normalized = DataService.zNormalize(DataService.getColumn(singleZ,2));
+			for(int i = 0 ; i < singleZ.length ; i++){
+				 singleZ[i][1] = normalized[i]; 
 			}
 		}
 		
@@ -609,8 +617,10 @@ public class SdlMain {
 				
 		ShapeQuery shapeQuery = new ShapeQuery();
 		
+		
+		//TODO: Move all this to the parser
 		/*Parsing shapeQuery*/ 
-		for(String[] shapeSegment : Data.parser(keywords)){
+		for(String[] shapeSegment : DataService.parser(sdlQuery.sdltext)){
 			if(shapeSegment[1].equals("") && (shapeSegment[4].equals("") || shapeSegment[5].equals(""))){
 				throw new IOException("---------------ERROR : INCOMPLETE INFORMATION---------------");
 			}
@@ -642,7 +652,7 @@ public class SdlMain {
 			for(int i = 0 ; i < data.size() ; i++){
 				/*Test if we can have at least one segment*/
 				if(data.get(i).length > 1){
-						bestOfEachZ.add(new SegmentsAndZ(SdlMain.getBestPartition1(min_size, nb_segments, pattern , shapeQuery , data.get(i) , data1.get(i)), zs.get(i), data.get(i)));
+						bestOfEachZ.add(new SegmentsAndZ(SdlMain.getBestPartition1(min_size, nb_segments, pattern , shapeQuery , data.get(i) , originalData.get(i)), zs.get(i), data.get(i)));
 					}
 				}
 				allPartitions.clear();
@@ -651,7 +661,7 @@ public class SdlMain {
 				/*Test if we can have at least one segment*/
 				if(data.get(i).length > 1){
 					List<Segment> smooth_segments = Segment.initialize(data.get(i),min_size);	
-					bestOfEachZ.add(new SegmentsAndZ(smooth_segments,SdlMain.getBestPartition2(smooth_segments , min_size, nb_segments, pattern , shapeQuery  , data.get(i) , data1.get(i)), zs.get(i), data.get(i)));
+					bestOfEachZ.add(new SegmentsAndZ(smooth_segments,SdlMain.getBestPartition2(smooth_segments , min_size, nb_segments, pattern , shapeQuery  , data.get(i) , originalData.get(i)), zs.get(i), data.get(i)));
 					}
 				}
 				allPartitions.clear();
@@ -666,9 +676,9 @@ public class SdlMain {
 			/*Sort list of segments depending on score*/
 			Collections.sort(bestOfEachZ, new Comparator<SegmentsAndZ>() {
 		        @Override public int compare(SegmentsAndZ s1, SegmentsAndZ s2) {
-		        	if(SdlMain.getOverallScore1(s1.segments, shapeQuery, pattern,s1.data , data1.get(zs.indexOf(s1.z))) <  SdlMain.getOverallScore1(s2.segments, shapeQuery, pattern,s2.data,data1.get(zs.indexOf(s2.z)))){
+		        	if(SdlMain.getOverallScore1(s1.segments, shapeQuery, pattern,s1.data , originalData.get(zs.indexOf(s1.z))) <  SdlMain.getOverallScore1(s2.segments, shapeQuery, pattern,s2.data,originalData.get(zs.indexOf(s2.z)))){
 		        		return 1;
-		        	}else if(SdlMain.getOverallScore1(s1.segments, shapeQuery, pattern,s1.data,data1.get(zs.indexOf(s1.z))) >  SdlMain.getOverallScore1(s2.segments, shapeQuery, pattern,s2.data,data1.get(zs.indexOf(s2.z)))){
+		        	}else if(SdlMain.getOverallScore1(s1.segments, shapeQuery, pattern,s1.data,originalData.get(zs.indexOf(s1.z))) >  SdlMain.getOverallScore1(s2.segments, shapeQuery, pattern,s2.data,originalData.get(zs.indexOf(s2.z)))){
 		        		return -1;
 		        	}else{
 		        		return 0;
@@ -679,9 +689,9 @@ public class SdlMain {
 			/*Sort list of segments depending on score*/
 			Collections.sort(bestOfEachZ, new Comparator<SegmentsAndZ>() {
 		        @Override public int compare(SegmentsAndZ s1, SegmentsAndZ s2) {
-		        	if(SdlMain.getOverallScore2(s1.segments, shapeQuery, pattern,s1.tuples, data1.get(zs.indexOf(s1.z))) <  SdlMain.getOverallScore2(s2.segments, shapeQuery, pattern,s2.tuples, data1.get(zs.indexOf(s2.z)))){
+		        	if(SdlMain.getOverallScore2(s1.segments, shapeQuery, pattern,s1.tuples, originalData.get(zs.indexOf(s1.z))) <  SdlMain.getOverallScore2(s2.segments, shapeQuery, pattern,s2.tuples, originalData.get(zs.indexOf(s2.z)))){
 		        		return 1;
-		        	}else if(SdlMain.getOverallScore2(s1.segments, shapeQuery, pattern,s1.tuples, data1.get(zs.indexOf(s1.z))) >  SdlMain.getOverallScore2(s2.segments, shapeQuery, pattern,s2.tuples, data1.get(zs.indexOf(s2.z)))){
+		        	}else if(SdlMain.getOverallScore2(s1.segments, shapeQuery, pattern,s1.tuples, originalData.get(zs.indexOf(s1.z))) >  SdlMain.getOverallScore2(s2.segments, shapeQuery, pattern,s2.tuples, originalData.get(zs.indexOf(s2.z)))){
 		        		return -1;
 		        	}else{
 		        		return 0;
@@ -712,7 +722,7 @@ public class SdlMain {
 		if(approach.equals("approach1")){
 			for(int i = 0 ; i < top_K  ; i++){
 				System.out.println("z is : "+bestOfEachZ.get(i).z);
-				System.out.println("score is  : "+SdlMain.getOverallScore1(bestOfEachZ.get(i).segments, shapeQuery, pattern,bestOfEachZ.get(i).data,data1.get(zs.indexOf(bestOfEachZ.get(i).z))));
+				System.out.println("score is  : "+SdlMain.getOverallScore1(bestOfEachZ.get(i).segments, shapeQuery, pattern,bestOfEachZ.get(i).data,originalData.get(zs.indexOf(bestOfEachZ.get(i).z))));
 				Segment.printListSegments((bestOfEachZ.get(i).segments));
 				System.out.println("////////////////");
 			}
@@ -723,9 +733,9 @@ public class SdlMain {
 		}else{
 			for(int i = 0 ; i < top_K  ; i++){
 				System.out.println("z is : "+bestOfEachZ.get(i).z);
-				System.out.println("overall score is  : "+SdlMain.getOverallScore2(bestOfEachZ.get(i).segments, shapeQuery, pattern,bestOfEachZ.get(i).tuples,data1.get(zs.indexOf(bestOfEachZ.get(i).z))));
+				System.out.println("overall score is  : "+SdlMain.getOverallScore2(bestOfEachZ.get(i).segments, shapeQuery, pattern,bestOfEachZ.get(i).tuples,originalData.get(zs.indexOf(bestOfEachZ.get(i).z))));
 				System.out.println("score K : "+SdlMain.getScoreKeywords2(bestOfEachZ.get(i).segments, pattern, bestOfEachZ.get(i).tuples, shapeQuery));
-				System.out.println("score L : "+SdlMain.getScoreL1(Segment.createListSegment(bestOfEachZ.get(i).tuples, data1.get(zs.indexOf(bestOfEachZ.get(i).z))),shapeQuery,data1.get(zs.indexOf(bestOfEachZ.get(i).z))));
+				System.out.println("score L : "+SdlMain.getScoreL1(Segment.createListSegment(bestOfEachZ.get(i).tuples, originalData.get(zs.indexOf(bestOfEachZ.get(i).z))),shapeQuery,originalData.get(zs.indexOf(bestOfEachZ.get(i).z))));
 				Segment.printListSegments(bestOfEachZ.get(i).segments);
 				System.out.println("////////////////");
 			}
@@ -753,7 +763,7 @@ public class SdlMain {
 		*/
 		
 		/*Send raw data to front-end*/
-		return convertOutputtoVisualization(result,data1,zs,sdlQuery,top_K);
+		return convertOutputtoVisualization(result,originalData,zs,sdlQuery,top_K);
 	}
 	
 	/*Converts the top K List<Segment> to Result format*/
@@ -764,8 +774,8 @@ public class SdlMain {
 		for(int i = 0 ; i < topK ; i++){
 			result.outputCharts.add(i,new Chart());
 
-			result.outputCharts.get(i).setxData(Data.doubleToString(Data.getColumn(data.get(zs.indexOf(top_k_results.get(i).z)),1)));
-			result.outputCharts.get(i).setyData(Data.doubleToString(Data.getColumn(data.get(zs.indexOf(top_k_results.get(i).z)),2)));
+			result.outputCharts.get(i).setxData(DataService.doubleToString(DataService.getColumn(data.get(zs.indexOf(top_k_results.get(i).z)),1)));
+			result.outputCharts.get(i).setyData(DataService.doubleToString(DataService.getColumn(data.get(zs.indexOf(top_k_results.get(i).z)),2)));
 			
 			result.outputCharts.get(i).setRank(i+1);
 			result.outputCharts.get(i).setxType(sdlQuery.x);
