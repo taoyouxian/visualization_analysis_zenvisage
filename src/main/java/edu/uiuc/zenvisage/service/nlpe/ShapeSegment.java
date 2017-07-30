@@ -3,9 +3,9 @@ package edu.uiuc.zenvisage.service.nlpe;
 import java.util.List;
 
 public class ShapeSegment {
-	String operator;
+	String operator;  // NONE,OR, AND, NOT  create enumerations
 	List<ShapeSegment> shapeSegment;
-	String quantifierType;
+	String quantifierType;	// ZEROORMORE, ZERORONE, ATLEAST, ATMOST, BETWEEN
 	int minCount;
 	int maxCount;
 	String modifier;
