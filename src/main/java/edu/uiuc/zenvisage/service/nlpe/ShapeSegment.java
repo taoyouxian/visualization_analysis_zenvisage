@@ -1,7 +1,13 @@
-package edu.uiuc.zenvisage.service.nlpparser;
+package edu.uiuc.zenvisage.service.nlpe;
+
+import java.util.List;
 
 public class ShapeSegment {
-
+	String operator;
+	List<ShapeSegment> shapeSegment;
+	String quantifierType;
+	int minCount;
+	int maxCount;
 	String modifier;
 	String keyword;
 	String x_start,x_end;
@@ -63,4 +69,45 @@ public class ShapeSegment {
 	public void setY_end(String y_end) {
 		this.y_end = y_end;
 	}
+
+	public String getOperator() {
+		return operator;
+	}
+
+	public void setOperator(String operator) {
+		this.operator = operator;
+	}
+
+	public List<ShapeSegment> getShapeSegment() {
+		return shapeSegment;
+	}
+
+	public void setShapeSegment(List<ShapeSegment> shapeSegment) {
+		this.shapeSegment = shapeSegment;
+	}
+
+	public String getQuantifierType() {
+		return quantifierType;
+	}
+
+	public void setQuantifierType(String quantifierType) {
+		this.quantifierType = quantifierType;
+	}
+
+	public int getMinCount() {
+		return minCount;
+	}
+
+	public void setMinCount(int minCount) {
+		this.minCount = minCount;
+	}
+
+	public int getMaxCount() {
+		return maxCount;
+	}
+
+	public void setMaxCount(int maxCount) {
+		this.maxCount = maxCount;
+	}
+
 }

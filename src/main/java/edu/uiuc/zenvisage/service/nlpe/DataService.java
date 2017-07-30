@@ -1,4 +1,4 @@
-package edu.uiuc.zenvisage.service.nlpparser;
+package edu.uiuc.zenvisage.service.nlpe;
 
 import java.io.IOException;
 import java.sql.Connection;
