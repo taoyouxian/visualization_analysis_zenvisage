@@ -8,21 +8,65 @@ import java.util.List;
 
 import edu.uiuc.zenvisage.model.Chart;
 import edu.uiuc.zenvisage.model.Result;
+import edu.uiuc.zenvisage.service.nlpe.Partition;
+import edu.uiuc.zenvisage.service.nlpe.Segment;
+import edu.uiuc.zenvisage.service.nlpe.ShapeSegment;
 
 public class ShapeQueryExecutor {
 
-	  
+/*Casts boolean to int*/
+public static int booleanToInt(boolean b){
+	return (b) ? 1 : 0;
+}
+	
+public static ArrayList<Integer> toNewFormat(Partition[] partitions ,int x_min , int x_max){
+	ArrayList<Integer> result = new ArrayList<>();
+	
+	int j = 0 ;
+	for(int i = 0 ; i < partitions.length ; i++){
+		if(partitions[i].start_idx >= 0){
+			result.add(j,(partitions[i].start_idx));
+			j++;
+		}else{
+			if(i == 0){
+				result.add(j,x_min); 
+				j++;
+			}else{
+				result.add(j,partitions[i-1].end_idx);
+				j++;
+			}
+		}
+		
+	    if(partitions[i].end_idx >= 0){
+			result.add(j,(partitions[i].end_idx));
+			j++;
+		}else{
+			if(i == partitions.length-1 ){
+				result.add(j,x_max);
+				j++;
+			}else{
+				result.add(j,(partitions[i+1].start_idx));
+				j++;
+			}	
+		}
+	}
+	return result;
+}
+
 public static ArrayList<ArrayList<Partition>> allPartitions(Partition[] partitions , double[][] data, Partition partition){
 		
 		ArrayList<ArrayList<Partition>> result = new ArrayList<>();
-		int x_max = (int)(data[data.length-1][0]-1);
 		
-		/*Case where first x value is 0*/
-		if(data[0][0] == 0){
-			 x_max = (int)(data[data.length-1][0]);
-		}
+//		int x_min = (int)(data[0][0]);
+//
+//		int x_max = (int)(data[data.length-1][0]-1);
+//		
+//		/*Case where first x value is 0*/
+//		if(data[0][0] == 0){
+//			 x_max = (int)(data[data.length-1][0]);
+//		}
 		
-		ArrayList<Integer> newFormat = toNewFormat(partitions , x_max);
+		ArrayList<Integer> newFormat = toNewFormat(partitions , partition.start_idx , partition.end_idx);
 		boolean firstRun = true;
 		int j = 1 ;
 		
@@ -100,19 +144,17 @@ public static ArrayList<ArrayList<Partition>> allPartitions(Partition[] partitio
 		return result;
 	}
 	
-	
-
 public static Partition[] xConstraints(ShapeSegment shapeSegment){
 	
 	Partition[] constraints = new Partition[shapeSegment.getShapeSegments().size()];
 	int i = 0 ;
-	//TODO: Zak Fix ""
+
 	for(ShapeSegment shapeSeg : shapeSegment.getShapeSegments()){
-		if(shapeSeg.getX_start()==null && shapeSeg.getX_end()==null){
+		if(shapeSeg.getX_start() == null && shapeSeg.getX_end() == null){
 			constraints[i] = new Partition(-1,-1);
-		}else if(!shapeSeg.getX_start().equals("") && shapeSeg.getX_end().equals("")){
-			constraints[i] = new Partition(Integer.parseInt(shapeSeg.x_start),-1);
-		}else if(shapeSeg.getX_start().equals("") && !shapeSeg.getX_end().equals("")){
+		}else if(shapeSeg.getX_start() != null && shapeSeg.getX_end() == null){
+			constraints[i] = new Partition(shapeSeg.getX_start(),-1);
+		}else if(shapeSeg.getX_start() == null && shapeSeg.getX_end() != null){
 			constraints[i] = new Partition(-1,shapeSeg.getX_end());
 		}else{
 			constraints[i] = new Partition(shapeSeg.getX_start(),shapeSeg.getX_end());
@@ -225,6 +267,101 @@ public static double getOverallScore1(List<Segment> segments ,ShapeSegment shape
 }
 
 
+public static double getScoreKeywordLeaf(Partition partition ,ShapeSegment shapeSegment , double[][] normalized_viz){
+	Segment segment = Segment.createSegment(partition, normalized_viz);
+	
+	int x_s = booleanToInt(shapeSegment.getX_start() != null); //0 if x_start is "" else 1
+	int x_e = booleanToInt(shapeSegment.getX_end() != null); //0 if x_end is "" else 1
+	int y_s = booleanToInt(shapeSegment.getY_start() != null); //0 if y_start is "" else 1
+	int y_e = booleanToInt(shapeSegment.getY_end() != null); //0 if y_end is "" else 1
+	
+	int nb_elements = x_s + x_e + y_s + y_e; // nb of elements not ""
+	
+	double alpha;
+	if(nb_elements != 0 && shapeSegment.getPattern()..equals("")){
+		 alpha = 0;
+	}else if((nb_elements != 0 && !shapeSegment.getPattern()..equals(""))){
+		 alpha = 0.5;
+	}else{
+		alpha = 1;
+	}
+	
+	double score = 0 ;
+	switch(shapeSegment.getPattern().){
+	case "up" : score = Math.atan(segment.slope)/(Math.PI/2);
+				break;
+	case "flat" : score = (1-Math.abs(Math.atan(segment.slope)/(Math.PI/4)));
+				break;
+	case "down" : score = Math.atan(segment.slope)/(Math.PI/2);
+				break;
+	case "*"  : score = 0 ;		 
+				break;
+	}	
+	return alpha*score;
+}
+
+
+public static double getScoreL1Leaf(Partition partition , ShapeSegment shapeSegment , double data[][]){
+	Segment segment = Segment.createSegment(partition, data);
+	
+	double xRange = DataService.findRange(DataService.getColumn(data, 1));
+	double yRange = DataService.findRange(DataService.getColumn(data, 2));
+
+	int x_s = booleanToInt(shapeSegment.getX_start() != null); //0 if x_start is "" else 1
+	int x_e = booleanToInt(shapeSegment.getX_end() != null); //0 if x_end is "" else 1
+	int y_s = booleanToInt(shapeSegment.getY_start() != null); //0 if y_start is "" else 1
+	int y_e = booleanToInt(shapeSegment.getY_end() != null); //0 if y_end is "" else 1
+	
+	int nb_elements = x_s + x_e + y_s + y_e; // nb of elements not ""
+	
+	/*score is [(Xs-xs)+(Xe-xe)]/xRange + [(Ys-ys)+(Ye-ye)]/yRange, include only values which are not null */
+	if(nb_elements == 0){
+		return 0;
+	}
+	
+	if(xRange == 0 ){
+		xRange = 1;
+	}
+	
+	if(yRange == 0 ){
+		yRange = 1;
+	}
+
+	double x_start = shapeSegment.getX_start() == null ?  Double.MIN_VALUE : shapeSegment.getX_start();
+	double x_end = shapeSegment.getX_end() == null  ?  Double.MIN_VALUE   : shapeSegment.getX_end();
+	double y_start = shapeSegment.getY_start() == null  ?  Double.MIN_VALUE  : shapeSegment.getY_start();
+	double y_end = shapeSegment.getY_end() == null ?  Double.MIN_VALUE  : shapeSegment.getY_end();
+	
+	double beta;
+	if(nb_elements != 0 && shapeSegment.getPattern()..equals("")){
+		 beta = 1;
+	}else if((nb_elements != 0 && !shapeSegment.getPattern()..equals(""))){
+		 beta = 0.5;
+	}else{
+		beta = 0;
+	}
+	
+	double abs_x_s = Math.abs(segment.start_idx - x_start); 
+	double abs_x_e = Math.abs(segment.end_idx - x_end);
+	double abs_y_s = Math.abs(data[segment.start_idx][1] - y_start);
+	double abs_y_e = Math.abs(data[segment.end_idx][1] - y_end);
+	
+//	
+//	return  beta*
+//			(
+//			(
+//			(y_s * abs_y_s)/yRange
+//			+ (y_e * abs_y_e)/yRange 
+//			)
+//			/nb_elements
+//			);
+	
+	return  beta*(( (x_s * abs_x_s)/xRange
+			+ (x_e * abs_x_e)/xRange 
+			+ (y_s * abs_y_s)/yRange
+			+ (y_e * abs_y_e)/yRange )/nb_elements);
+}
+
  
 
 
@@ -244,8 +381,19 @@ public static double getScoreForPartition(ShapeSegment shapeSegment, Partition p
 		List<Double> scores = new ArrayList<>();
 		// create all partitions
 		//Fix
-		for(ArrayList<Partition> partitions : allPartitions(xConstraints(shapeQuery.getShapeSegment()),original_viz,partition)){
+		for(ArrayList<Partition> partitions : allPartitions(xConstraints(shapeSegment),original_viz,partition)){
 			Partition[] tmp = partitions.toArray(new Partition[0]);
+			double score = 0 ;
+			int i = 0 ; 
+			int overall_length = 0 ;
+			for(ShapeSegment childSegment : shapeSegment.getShapeSegments()){
+				 int currentChildSegmentLength = tmp[i].end_idx - tmp[i].start_idx;
+				 overall_length += currentChildSegmentLength;
+				 score += getScoreForPartition(childSegment, tmp[i], normalized_viz , original_viz)*(currentChildSegmentLength);
+				 i++;
+			}
+			score /= overall_length;
+			scores.add(score);
 			// getScoreForPartition
 			// calculate score for one partition, based on the operation and normalization: segment_length[i])/(overall_length*(pattern.length - nb_stars)))
 			// add the score to scores
@@ -259,10 +407,11 @@ public static double getScoreForPartition(ShapeSegment shapeSegment, Partition p
 				max_score = scores.get(i);
 			}
 		}
+		return scores.get(max_idx);
 		// return max score		
 	}
-	else
-	{
+	else{
+		return getScoreKeywordLeaf(partition,shapeSegment.getPattern().,normalized_viz)+(1-getScoreL1Leaf(partition, shapeSegment, original_viz));
 		// calculate score for partition
 	   //	getOverallScore1(segments, shapeQuery, pattern , normalized_viz,original_viz);
 	   //	return the score for one match
@@ -307,8 +456,8 @@ public static double getScoreForPartition(ShapeSegment shapeSegment, Partition p
 		
 		/*HARD CONSTRAINT ON X-VALUES*/
 		// create a partition with starting index and end index
-		Partition partition=null;
-	    double vizscore = getScoreForPartition(shapeQuery.getShapeSegment(),original_viz,normalized_viz)
+		Partition partition = new Partition(original_viz[0][0] , original_viz[original_viz.length-1][0]);
+	    double vizscore = getScoreForPartition(shapeQuery.getShapeSegment(),partition , original_viz,normalized_viz);
 	//	return vizscore;
 	//	return new SegmentsToZMapping(result.get(max_idx), z, normalized_viz, scores.get(max_idx));
 		
@@ -339,7 +488,7 @@ public static double getScoreForPartition(ShapeSegment shapeSegment, Partition p
 		ArrayList<double[][]> normalizedVisualizations = DataService.normalizeData(DataService.cloneData(originalVisualizations));
 
 		/*Parsing shapeQuery*/
-		NlpRegexParser.parse(shapeQuery);
+//		NlpRegexParser.parse(shapeQuery);
 		
 		/*Getting the pattern from the shape query*/
 //		String[] pattern = DataService.getPatternFromShapeQuery(shapeQuery);

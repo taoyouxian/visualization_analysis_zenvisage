@@ -231,19 +231,19 @@ public class SdlMain {
 	public static SegmentsToZMapping getBestPartition1(int min_size , int nb_segments , String[] pattern , ShapeQuery shapeQuery , String z , double[][] normalized_data , double[][] raw_data){
 		/*Smooth our segments then give all partitions possible*/
 		/*OLD APPROACH 1 */
-//		List<List<Segment>> result = SdlMain.partition1(Segment.smoothing(min_size,nb_segments,shapeQuery.shapeSegment.size(),normalized_data),shapeQuery.shapeSegment.size(), normalized_data);
+		List<List<Segment>> result = SdlMain.partition1(Segment.smoothing(min_size,nb_segments,shapeQuery.shapeSegment.size(),normalized_data),shapeQuery.shapeSegment.size(), normalized_data);
 		
-		
+//     	*************************************	
 		/*HARD CONSTRAINT ON X-VALUES*/
 		
-		List<List<Segment>> result = new ArrayList<>();
-		for(ArrayList<Partition> partitions : SdlMain.allPartitions(SdlMain.xConstraints(shapeQuery),raw_data)){
-			Partition[] tmp = partitions.toArray(new Partition[0]);
-			result.add(Segment.createListSegment(tmp, normalized_data));
-		}
-				
-//      *************************************
-		
+//		List<List<Segment>> result = new ArrayList<>();
+//		for(ArrayList<Partition> partitions : SdlMain.allPartitions(SdlMain.xConstraints(shapeQuery),raw_data)){
+//			Partition[] tmp = partitions.toArray(new Partition[0]);
+//			result.add(Segment.createListSegment(tmp, normalized_data));
+//		}
+//				
+////      *************************************
+	
 		List<Double> scores = new ArrayList<>();
 		/*Score and rank*/
 		for(List<Segment> segments : result){
@@ -371,34 +371,12 @@ public class SdlMain {
 		/*Without constraints*/
 		
 		/*Give all partitions possible of smooth version of segments*/
-//		SdlMain.partition2(smooth_segments,shapeQuery.shapeSegment.size(), normalized_data); 
-//		List<Double> scores = new ArrayList<>();
-//		
-//		/*Score and rank*/
-//		for(Partition[] partitions  : allPartitions){
-//			scores.add(SdlMain.getOverallScore2(smooth_segments , shapeQuery, pattern ,partitions , raw_data));
-//		}
-//		
-//		int max_idx = -1;
-//		double max_score = Double.NEGATIVE_INFINITY;
-//		
-//		for(int i = 0 ; i < scores.size() ; i++){
-//			if(scores.get(i) > max_score){
-//				max_idx = i;
-//				max_score = scores.get(i);
-//			}
-//		}
-//		return new SegmentsMappedWithZ(smooth_segments,allPartitions.get(max_idx),z,normalized_data,scores.get(max_idx));
-		
-//		************************
-		
-		/*WITH HARD CONSTRAINT*/
+		SdlMain.partition2(smooth_segments,shapeQuery.shapeSegment.size(), normalized_data); 
 		List<Double> scores = new ArrayList<>();
-	
-		ArrayList<ArrayList<Partition>> result = SdlMain.allPartitions(SdlMain.xConstraints(shapeQuery),normalized_data);
-		for(ArrayList<Partition> partitions : result){
-			Partition[] tmp = partitions.toArray(new Partition[0]);
-			scores.add(SdlMain.getOverallScore2(smooth_segments , shapeQuery, pattern ,tmp , raw_data));
+		
+		/*Score and rank*/
+		for(Partition[] partitions  : allPartitions){
+			scores.add(SdlMain.getOverallScore2(smooth_segments , shapeQuery, pattern ,partitions , raw_data));
 		}
 		
 		int max_idx = -1;
@@ -410,9 +388,31 @@ public class SdlMain {
 				max_score = scores.get(i);
 			}
 		}
-
-		Partition[] max_partition = result.get(max_idx).toArray(new Partition[0]);
-        return new SegmentsToZMapping(smooth_segments, max_partition, z, normalized_data,scores.get(max_idx));	
+		return new SegmentsToZMapping(smooth_segments,allPartitions.get(max_idx),z,normalized_data,scores.get(max_idx));
+		
+//		************************
+		
+		/*WITH HARD CONSTRAINT*/
+//		List<Double> scores = new ArrayList<>();
+//	
+//		ArrayList<ArrayList<Partition>> result = SdlMain.allPartitions(SdlMain.xConstraints(shapeQuery),normalized_data);
+//		for(ArrayList<Partition> partitions : result){
+//			Partition[] tmp = partitions.toArray(new Partition[0]);
+//			scores.add(SdlMain.getOverallScore2(smooth_segments , shapeQuery, pattern ,tmp , raw_data));
+//		}
+//		
+//		int max_idx = -1;
+//		double max_score = Double.NEGATIVE_INFINITY;
+//		
+//		for(int i = 0 ; i < scores.size() ; i++){
+//			if(scores.get(i) > max_score){
+//				max_idx = i;
+//				max_score = scores.get(i);
+//			}
+//		}
+//
+//		Partition[] max_partition = result.get(max_idx).toArray(new Partition[0]);
+//        return new SegmentsToZMapping(smooth_segments, max_partition, z, normalized_data,scores.get(max_idx));	
         
 	}
 	
