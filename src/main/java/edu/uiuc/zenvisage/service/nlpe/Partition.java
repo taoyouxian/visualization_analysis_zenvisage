@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Partition {
 	int start_idx,end_idx;
-	
+	 double slope , beta , error;
 	/*Creates a partition*/
 	public Partition(int start_idx , int end_idx){
 		this.start_idx= start_idx;
@@ -44,5 +44,7 @@ public class Partition {
 		}
 		return copy;
 	}
+	
+	
 }
 		

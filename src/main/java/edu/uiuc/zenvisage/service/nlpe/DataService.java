@@ -21,9 +21,6 @@ public class DataService{
 	private String password = "zenvisage";
 	Connection c = null;
 	
-	/*Stores list of Z values*/
-	public static ArrayList<String> allZs = new ArrayList<>();
-
 	/*Initialize connection*/
 	public DataService() {
 	      try {
@@ -103,7 +100,7 @@ public class DataService{
 	}	
 	
 	/*Gets the data of a all z values from Postgres and stores it in a list*/
-	public static ArrayList<double[][]> fetchAllData(String X , String Y , String Z , String tableName ) throws SQLException, ClassNotFoundException{
+	public static ArrayList<double[][]> fetchAllData(String X , String Y , String Z , String tableName, ArrayList<String> allZs ) throws SQLException, ClassNotFoundException{
 		/*ArrayList<double[][]> result = new ArrayList<>();*/
 		ArrayList<ArrayList<double[]>> result = new ArrayList<>();
 		DataService queryExecutor = new DataService();
@@ -204,37 +201,7 @@ public class DataService{
 	}
 	
 	
-	public static ShapeQuery parser(String shapeQueryString) throws JsonParseException, JsonMappingException, IOException{
-		ShapeQuery shapeQuery = new ShapeQuery();
-		
-		shapeQueryString = shapeQueryString.replaceAll("'", "\"");
-		
-		ArrayList<String[]> arrayOfShapeSegments = new ArrayList<>();
-		
-		ObjectMapper mapper = new ObjectMapper();
-		String[][] big_array = mapper.readValue(shapeQueryString,String[][].class);
-		
-		for (int i = 0 ; i < big_array.length; i++){
-			String[] small_array = big_array[i];
-			String modifier = small_array[0];
-			String pattern = small_array[1];
-			String x_start = small_array[2];
-			String x_end = small_array[4];
-			String y_start = small_array[3];
-			String y_end = small_array[5];
-			String[] tuple = {modifier,pattern,x_start,x_end,y_start,y_end};
-			arrayOfShapeSegments.add(tuple);
-		}
-		
-		for(String[] shapeSegment : arrayOfShapeSegments){
-			if(shapeSegment[1].equals("") && (shapeSegment[4].equals("") || shapeSegment[5].equals(""))){
-				throw new IOException("---------------ERROR : INCOMPLETE INFORMATION---------------");
-			}
-			shapeQuery.shapeSegment.add(new ShapeSegment(shapeSegment[0], shapeSegment[1], shapeSegment[2], shapeSegment[3], shapeSegment[4], shapeSegment[5]));
-		}
-		
-		return shapeQuery;
-	}
+	
 		
 	/*Converts  array of double to array of strings*/
 	public static ArrayList<String> doubleToString(double[] data){
