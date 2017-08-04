@@ -7,10 +7,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+
+import edu.uiuc.zenvisage.service.nlpe.ShapeQuery;
+import edu.uiuc.zenvisage.service.nlpe.ShapeSegment;
 
 
 /*data is data[n][2]*/
@@ -132,21 +136,16 @@ public class DataService{
 	}
 	
 	/*Extract the pattern from the shape query*/
-	public static String[] getPatternFromShapeQuery(ShapeQuery shapeQuery){
-		ArrayList<String> keywrds = new ArrayList<>();
-		
-		for(ShapeSegment shapeSegment : shapeQuery.shapeSegment){
-			if(!shapeSegment.keyword.equals("")){
-				keywrds.add(shapeSegment.keyword);
+	public static void getPatternFromShapeQuery(ShapeSegment shapeSegment , ArrayList<String> patternTypes){
+		if(shapeSegment.isHasChildren()){
+			for(ShapeSegment current_shape_segment : shapeSegment.getShapeSegments()){
+				getPatternFromShapeQuery(current_shape_segment, patternTypes);
+			}
+		}else{
+			if(!shapeSegment.getPattern().getType().equals("")){
+				patternTypes.add(shapeSegment.getPattern().getType());	
 			}
 		}
-		
-		String[] pattern = new String[keywrds.size()];
-		for(int i = 0 ; i < pattern.length ; i++){
-			pattern[i] = keywrds.get(i);
-		}
-		
-		return pattern;
 	}
 
 	/*Returns a clone of data*/
@@ -299,6 +298,58 @@ public class DataService{
 		    }
 		}
 		return max-min;
+	}
+	
+	
+	public static ShapeQuery parser(String shapeQueryString) throws JsonParseException, JsonMappingException, IOException{
+		ShapeQuery shapeQuery = new ShapeQuery();
+		shapeQuery.x = "x"; //x value
+		shapeQuery.y = "y"; // y value 
+		shapeQuery.z = "z" ; // z value
+		shapeQuery.dataset = "data1"; //dataset 
+		shapeQuery.topk = 10;
+		shapeQuery.regex = "3";
+		shapeQuery.nltext = "blablablabla";
+		shapeQuery.approach = "approach1";
+		
+		shapeQuery.setShapeSegment(new ShapeSegment());
+		shapeQuery.getShapeSegment().setHasChildren(true);
+		
+		shapeQueryString = shapeQueryString.replaceAll("'", "\"");
+		
+		ArrayList<String[]> arrayOfShapeSegments = new ArrayList<>();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		String[][] big_array = mapper.readValue(shapeQueryString,String[][].class);
+		
+		for (int i = 0 ; i < big_array.length; i++){
+			String[] small_array = big_array[i];
+			String modifier = small_array[0];
+			String pattern = small_array[1];
+			String x_start = small_array[2];
+			String x_end = small_array[4];
+			String y_start = small_array[3];
+			String y_end = small_array[5];
+			String[] tuple = {modifier,pattern,x_start,x_end,y_start,y_end};
+			arrayOfShapeSegments.add(tuple);
+		}
+		
+		List<ShapeSegment> shapeSegments = new ArrayList<>();
+		
+		int i = 0 ;
+		for(String[] shapeSegment : arrayOfShapeSegments){
+			if(shapeSegment[1].equals("") && (shapeSegment[4].equals("") || shapeSegment[5].equals(""))){
+				throw new IOException("---------------ERROR : INCOMPLETE INFORMATION---------------");
+			}
+			shapeSegments.add(new ShapeSegment());
+			shapeSegments.get(i).setHasChildren(false);
+			shapeSegments.get(i).setPattern(new Pattern());
+			shapeSegments.get(i).getPattern().setType(shapeSegment[1]);
+			i++;
+		}
+		
+		shapeQuery.getShapeSegment().setShapeSegments(shapeSegments);
+		return shapeQuery;
 	}
 	
 }

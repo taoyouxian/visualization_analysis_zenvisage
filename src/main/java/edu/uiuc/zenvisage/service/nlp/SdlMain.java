@@ -600,6 +600,7 @@ public class SdlMain {
 
 			}
 		}
+		
 		allPartitions.clear();
 		
 		/*Sort list of segments depending on score*/

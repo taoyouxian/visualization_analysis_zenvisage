@@ -5,12 +5,18 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+
 import edu.uiuc.zenvisage.service.ZvMain;
+import edu.uiuc.zenvisage.service.nlpe.ShapeQuery;
+import edu.uiuc.zenvisage.service.nlpe.ShapeSegment;
 
 public class NlpTest {
 	
 	public static void testSdl() throws IOException, InterruptedException, SQLException, ClassNotFoundException{
-		String query = "{\"x\": \"x\", \"y\": \"y\", \"z\": \"z\", \"dataset\": \"data1\", \"approach\": \"approach1\", \"sdlsegments\": \"3\" , \"sdltext\":\"[['', 'down', '', '', '', ''],['', '*', '', '', '', '']]\"}";
+		String query = "{\"x\": \"x\", \"y\": \"y\", \"z\": \"z\", \"dataset\": \"data1\", \"approach\": \"approach1\", \"sdlsegments\": \"3\" , \"sdltext\":\"[['	', 'down', '', '', '', ''],['', '*', '', '', '', '']]\"}";
 		ZvMain zv = new ZvMain();
 		zv.executeSDL(query);
 	}
@@ -23,12 +29,12 @@ public class NlpTest {
 //			}
 //		}
 		
-		long tStart1 = System.currentTimeMillis();		
-		
-		testSdl();
-		
-		long tEnd1 = System.currentTimeMillis();
-		System.out.println("TOTAL EXECUTION TIME : "+(tEnd1-tStart1)/1000.);
+//		long tStart1 = System.currentTimeMillis();		
+//		
+//		testSdl();
+//		
+//		long tEnd1 = System.currentTimeMillis();
+//		System.out.println("TOTAL EXECUTION TIME : "+(tEnd1-tStart1)/1000.);
 
 		/* [['', 'up', '', '', '1', '3'], ['', 'down', '', '', '3', '1']*/
 //		**********************************************************************
@@ -192,6 +198,60 @@ public class NlpTest {
 //			}
 //		System.out.println("------------");	
 //	}
+		
+
+//		**********************************************************************
+//		String shapeQueryString = "[['', 'down', '', '', '', ''],['', 'up', '', '', '', '']]";
+		
+		//Root
+		ShapeQuery shapeQuery = new ShapeQuery()/*DataService.parser(shapeQueryString)*/;
+		shapeQuery.setShapeSegment(new ShapeSegment());
+		shapeQuery.getShapeSegment().setHasChildren(true);
+		shapeQuery.x = "x";
+		shapeQuery.y = "y";
+		shapeQuery.z = "z";
+		shapeQuery.nltext = "doesntmatter";
+		shapeQuery.dataset = "data1";
+		shapeQuery.approach = "approach1";
+		shapeQuery.regex = "3";
+		shapeQuery.topk = 10;
+
+		
+		//Children
+		List<ShapeSegment> shapeSegments = new ArrayList<>();
+		
+		//1st child
+		shapeSegments.add(new ShapeSegment());
+		shapeSegments.get(0).setHasChildren(true);
+		List<ShapeSegment> shapeSegments1 = new ArrayList<>();
+		shapeSegments1.add(new ShapeSegment());
+		shapeSegments1.get(0).setHasChildren(false);
+			//set type of pattern
+			shapeSegments1.get(0).setPattern(new Pattern());
+			shapeSegments1.get(0).getPattern().setType("down");
+	
+	
+			shapeSegments1.add(new ShapeSegment());
+			shapeSegments1.get(1).setHasChildren(false);
+			//set type of pattern
+			shapeSegments1.get(1).setPattern(new Pattern());
+			shapeSegments1.get(1).getPattern().setType("flat");
+		shapeSegments.get(0).setShapeSegments(shapeSegments1);	
+
+		//2nd child
+		shapeSegments.add(new ShapeSegment());
+		shapeSegments.get(1).setHasChildren(false);
+		//set type of pattern
+		shapeSegments.get(1).setPattern(new Pattern());
+		shapeSegments.get(1).getPattern().setType("down");
+		//x-constraints
+		//shapeSegments.get(1).setX_start(3);
+		//shapeSegments.get(1).setX_end(4);
+	
+				
+		shapeQuery.getShapeSegment().setShapeSegments(shapeSegments);	
+		
+		ShapeQueryExecutor.execute(shapeQuery);
 		
 	}
 }

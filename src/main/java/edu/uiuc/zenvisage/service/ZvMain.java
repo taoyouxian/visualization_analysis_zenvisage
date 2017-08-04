@@ -58,8 +58,10 @@ import edu.uiuc.zenvisage.service.distance.DTWDistance;
 import edu.uiuc.zenvisage.service.distance.Distance;
 import edu.uiuc.zenvisage.service.distance.Euclidean;
 import edu.uiuc.zenvisage.service.distance.SegmentationDistance;
+import edu.uiuc.zenvisage.service.nlp.DataService;
 import edu.uiuc.zenvisage.service.nlp.SdlMain;
 import edu.uiuc.zenvisage.service.nlp.Sdlquery;
+import edu.uiuc.zenvisage.service.nlpe.ShapeQueryExecutor;
 import edu.uiuc.zenvisage.model.*;
 import edu.uiuc.zenvisage.service.utility.DataReformation;
 import edu.uiuc.zenvisage.service.utility.LinearNormalization;
@@ -617,6 +619,7 @@ public class ZvMain {
 		Sdlquery sdlquery = new ObjectMapper().readValue(query,Sdlquery.class);
 		System.out.println(new ObjectMapper().writeValueAsString(sdlquery));
 		Result result=SdlMain.executeSdlQuery(sdlquery);
+//		Result result=ShapeQueryExecutor.execute(edu.uiuc.zenvisage.service.nlpe.DataService.parser(sdlquery.sdltext));
 		String jsonResult=new ObjectMapper().writeValueAsString(result);
 		System.out.println(jsonResult);
 	    return jsonResult;
