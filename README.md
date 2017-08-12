@@ -47,3 +47,5 @@ The installation of Visualization_analysis_zenvisage is straightforward, assumin
         
           Aliyun Email : taoyouxian@aliyun.com
           Gmail Email: bthhuc@gmail.com
+     
+* More understanding about the project structure, you must read the references in pub.
