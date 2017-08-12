@@ -1,0 +1,9 @@
+location,month,dayofyear,year,temperature
+
+WriteParquet:
+-Dspark.master=local
+"Write_Weather_Parquet" "location,month,dayofyear,year,temperature" "/hohai/test/weather.csv" "/hohai/parquet/weather"
+
+ReadParquet:
+"Read_Weather_Parquet" "/hohai/parquet/weather" "weather" "SELECT location, month, avg(temperature) as temp FROM weather where location = 'BRBRGTWN' GROUP BY location, month ORDER BY month"
+

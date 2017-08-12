@@ -30,8 +30,8 @@ Zenvisage git: https://github.com/zenvisage/zenvisage
 * Zenvisage CIDR'17 paper describing the overall Zenvisage system, along with some target user scenarios is [here] [zenvisage-cidr].
  
 ### Required Software
+* Big Data Environment(Hadoop2.7.3 + Spark2.1.0) ; many ways to install this, make a good use of the Ubuntu commands.
 * Java Platform (JDK) >= 8; once installed, update `JAVA_HOME` to your installed java folder.
-* PostgreSQL >= 9.5;  many ways to install this, including an [app][postgres-installation] on Mac OSX.
 * Apache Maven 3.0.5;  many ways to install this, including `brew install maven` on Mac OSX.
 
 ### Installation Instructions
