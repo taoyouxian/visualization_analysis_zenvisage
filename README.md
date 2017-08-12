@@ -23,9 +23,6 @@ The current version is 0.1#copy.
 
 Zenvisage git: https://github.com/zenvisage/zenvisage
 
-# Zenvisage: An Interactive and Expressive Visual Analytics System
-Zenvisage is a visual data exploration system that can automatically identify and recommend visualizations that match desired user patterns. The user can specify at a high level what they are looking for either via interactions or via a query language (ZQL), and the system will perform the necessary computation to identify these visualizations.
- 
 ### Additional Readings
 * Zenvisage github: https://github.com/zenvisage/zenvisage.git
 * Zenvisage project webpage is [here] [zenvisage-website]; regular updates will be posted at this webpage.
