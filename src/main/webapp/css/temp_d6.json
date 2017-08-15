@@ -1,0 +1,13 @@
+{
+  "nodes": [
+    {"type": "zql", "name": "f1", "xval":"x1<-{'year'}", "yval":"y1<-{'soldprice'}", "zval": "z1<-'state'.*", "constraint": ""},
+    {"type": "zql", "name": "f2", "xval":"x1", "yval":"y2<-{'listingprice'}", "zval": "z1", "constraint": ""},
+    {"type": "process", "process": "v1<-argmin_{z1}[k=7]DEuclidean(f1,f2)"},
+    {"type": "zql", "name": "f3", "xval":"x1", "yval":"y3<-{'soldprice','listingprice'}", "zval": "v1", "constraint": ""}
+  ],
+  "links": [
+    {"source":  0, "target":  2},
+    {"source":  1, "target":  2},
+    {"source":  2, "target":  3}
+  ]
+}

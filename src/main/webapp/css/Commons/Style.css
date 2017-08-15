@@ -1,0 +1,106 @@
+.divTop {
+    position: fixed;
+    z-index: 999;
+    background-color: #f0f0f0;
+    text-shadow: 1px 1px 1px #fff;
+    width: 100%
+}
+
+.divTop .divNav {
+    padding: 8px
+}
+
+.divTop .divNav .divLogo {
+}
+
+.divTop .divNav .divLogo img {
+    width: 60px
+}
+
+.divTop .divNav .divCaption {
+    padding-left: 10px;
+    font-weight: bold;
+    color: #e42e35;
+    font-size: 1.5em
+}
+
+.divPan {
+    border: 1px solid #ddd;
+    background-color: #fff
+}
+
+.divPan .divPanHeader {
+    background-color: #eee;
+    border-bottom: 1px solid #ddd
+}
+
+.divPan .divPanHeader .divTitle {
+    padding: 10px 15px;
+    font-weight: bold
+}
+.divPan .divPanHeader .divTitle .spanTitle{
+    color: #ef1a60;
+}
+
+.divPan .divPanBody {
+    padding: 10px
+}
+.divPan .divPanFooter {
+    padding-bottom: 10px
+}
+
+.divPreview {
+    min-height: 200px
+}
+
+.divResult {
+    padding: 10px 0px;
+    text-align: center
+}
+
+.divResult .divDelAthlete {
+    font-size: 1.5em;
+    padding-bottom: 10px
+}
+
+.divResult .divDelAthlete .divResult {
+}
+
+.divResult .divScore {
+    padding-bottom: 10px
+}
+
+.divResult .divScore input {
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.5em;
+}
+
+.divResult .divAcBtns {
+    /*padding-bottom: 20px*/
+}
+
+.divBottom {
+    background-color: #444;
+    color: #fff;
+    text-shadow: 1px 1px 1px #222
+}
+
+.divBottom .divMas {
+    padding: 10px 15px;
+    font-size: 1.2em;
+    border-bottom: 1px solid #111
+}
+
+.divBottom .divDtl {
+    padding: 15px 15px;
+    font-size: 1em;
+    border-top: 1px solid #555;
+    text-shadow: 1px 1px 1px #444;
+    color: #f0f0f0
+}
+
+
+/*Add Part*/
+.form-controls {line-height: 22px !important;border: 1px solid #ccc; border-radius: 3px;box-shadow: none; padding: 0px 5px;width:100%;}

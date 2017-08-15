@@ -1,0 +1,11 @@
+{
+  "nodes": [
+    {"type": "zql", "name": "f1", "xval":"x1<-{'month'}", "yval":"y1<-{'temperature'}", "zval": "z1<-'location'.*", "constraint": ""}, 
+    {"type": "process", "process": "v1<-argmin_{z1}[k=5]T(f1)"},
+    {"type": "zql", "name": "f2", "xval":"x1", "yval":"y1", "zval": "v1", "constraint": ""}
+  ],
+  "links": [
+    {"source":  0, "target":  1},
+    {"source":  1, "target":  2}
+  ]
+}

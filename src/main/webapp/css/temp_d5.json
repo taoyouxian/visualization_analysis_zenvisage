@@ -1,0 +1,13 @@
+{
+  "nodes": [
+    {"type": "zql", "name": "f1", "xval":"x1<-{'year'}", "yval":"y1<-{'soldprice'}", "zval": "z1<-'state'.*", "constraint": "state='NY'"},
+    {"type": "zql", "name": "f2", "xval":"x1", "yval":"y1", "zval": "z2<-'city'.*", "constraint": ""},
+    {"type": "process", "process": "v1,v2<-argmax_{z1}x{z2}[k=3]DEuclidean(f1,f2)"},
+    {"type": "zql", "name": "f3", "xval":"x1", "yval":"y1", "zval": "v2", "constraint": ""}
+  ],
+  "links": [
+    {"source":  0, "target":  2},
+    {"source":  1, "target":  2},
+    {"source":  2, "target":  3}
+  ]
+}

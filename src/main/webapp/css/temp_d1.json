@@ -1,0 +1,8 @@
+{
+  "nodes": [
+    {"type": "zql", "name": "f1", "xval":"x1<-{'month'}", "yval":"y1<-{'temperature'}", "zval": "z1<-'location'.*", "constraint": "location='AUPERTH'"} 
+  ],
+  "links": [ 
+    {"source":  0, "target":  0}
+  ]
+}
